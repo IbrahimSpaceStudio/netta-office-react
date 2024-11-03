@@ -93,7 +93,7 @@ const LoginPage = () => {
             {portalType === "request" && <Input id="login-phone" isLabeled={false} placeholder="0881xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleChange} errorContent={errors.phone} isRequired />}
           </div>
           <footer className={styles.formFoot}>
-            <Button id={portalType === "login" ? "submit-login" : "submit-phone"} isFullwidth type="submit" buttonText={portalType === "login" ? "Masuk ke Dashboard" : "Request OTP"} startContent={<Login />} loadingContent={<LoadingContent />} isLoading={isLoading} />
+            <Button id={portalType === "login" ? "submit-login" : "submit-phone"} isFullwidth type="submit" buttonText={portalType === "login" ? "Masuk ke Dashboard" : "Request Password"} startContent={<Login />} loadingContent={<LoadingContent />} isLoading={isLoading} />
             <h6 className={styles.formForgot} onClick={portalType === "login" ? () => setPortalType("request") : () => setPortalType("login")}>
               {portalType === "login" ? "Lupa Password?" : "Kembali Login"}
             </h6>
