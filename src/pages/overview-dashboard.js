@@ -33,7 +33,7 @@ export const DashboardContainer = ({ children }) => {
 };
 
 const DashboardOverviewPage = () => {
-  const { isLoggedin, secret, idoutlet } = useAuth();
+  const { isLoggedin, level } = useAuth();
   const { apiRead } = useApi();
   const { setLoading } = useLoading();
   const [summaryData, setSummaryData] = useState(null);
@@ -67,7 +67,11 @@ const DashboardOverviewPage = () => {
     return <Navigate to="/login" />;
   }
 
-  return <Navigate to="/master/pegawai" />;
+  if (level === "STAFF") {
+    return <Navigate to="/aset/komputer" />;
+  } else {
+    return <Navigate to="/master/pegawai" />;
+  }
 
   // return (
   //   <Pages title="Overview | Dashboard">
