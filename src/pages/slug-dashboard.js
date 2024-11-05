@@ -168,7 +168,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
             setTotalPages(0);
           }
           break;
-        case "PROGRAM":
+        case "JOB":
           data = await apiRead(formData, "kpi", "viewprogram");
           if (data && data.data && data.data.length > 0) {
             setProgramData(data.data);
@@ -231,7 +231,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
           log(`id ${slug} data switched:`, switchedData.idemployee);
           setInputData({ name: switchedData.name, phone: switchedData.phone, email: switchedData.email, address: switchedData.address, position: switchedData.position, level: switchedData.akses });
           break;
-        case "PROGRAM":
+        case "JOB":
           switchedData = currentData(programData, "idprogram");
           log(`id ${slug} data switched:`, switchedData.idprogram);
           formData.append("data", JSON.stringify({ secret, idprogram: params }));
@@ -262,7 +262,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
       case "PEGAWAI":
         requiredFields = ["name", "phone", "email", "address", "position", "level"];
         break;
-      case "PROGRAM":
+      case "JOB":
         requiredFields = ["pic", "program_status", "program.progname", "program.channel", "program.target", "program.bobot"];
         break;
       default:
@@ -289,7 +289,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
         case "PEGAWAI":
           submittedData = { secret, name: inputData.name, phone: inputData.phone, email: inputData.email, address: inputData.address, position: inputData.position, akses: inputData.level };
           break;
-        case "PROGRAM":
+        case "JOB":
           submittedData = { secret, idpic: inputData.pic, picname: inputData.name, progstatus: inputData.program_status, detail: inputData.program.map((item) => ({ idsource: inputData.pic, sourcename: inputData.name, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot })), note: inputData.note };
           break;
         default:
@@ -456,7 +456,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
             )}
           </Fragment>
         );
-      case "PROGRAM":
+      case "JOB":
         const handlePICChange = (value) => {
           const selectedPIC = allEmplyData.find((item) => item.idemployee === value);
           if (selectedPIC) {
@@ -508,7 +508,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {filteredProgramData.map((data, index) => (
-                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/program/${toPathname(data.idprogram)}`)} onEdit={() => openEdit(data.idprogram)}>
+                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/job/${toPathname(data.idprogram)}`)} onEdit={() => openEdit(data.idprogram)}>
                       <TD type="custom">
                         <ToggleSwitch id={data.idprogram} isChecked={data.progstatus === "1"} onToggle={(e) => handleToggle(e, data.idprogram, data.progstatus === "0" ? "1" : "0", "cudprogram")} isLoading={isToggling} />
                       </TD>

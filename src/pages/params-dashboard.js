@@ -436,7 +436,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
               break;
           }
           break;
-        case "PROGRAM":
+        case "JOB":
           formData.append("data", JSON.stringify({ secret, idprogram: params }));
           data = await apiRead(formData, "kpi", "viewprogramdetail");
           if (data && data.data && data.data.length > 0) {
@@ -748,7 +748,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
             </DashboardBody>
           </Fragment>
         );
-      case "PROGRAM":
+      case "JOB":
         return (
           <Fragment>
             <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
@@ -758,7 +758,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
               </DashboardTool>
             </DashboardToolbar>
             <DashboardBody>
-              <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
+              <Table byNumber isExpandable isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "sourcename", "text")}>
