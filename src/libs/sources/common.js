@@ -108,7 +108,9 @@ export const inputSchema = {
   target: "",
   bobot: "",
   program_status: "",
-  program: [{ idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" }],
+  program: [{ idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "", startdate: "", enddate: "" }],
+  division: "",
+  source: "",
 };
 
 export const errorSchema = {
@@ -221,5 +223,7 @@ export const errorSchema = {
   target: "",
   bobot: "",
   program_status: "",
-  program: [{ idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" }],
+  program: [{ idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "", startdate: "", enddate: "" }],
+  division: "",
+  source: "",
 };

@@ -12,7 +12,7 @@ export const useOptions = () => {
   ];
   const levelopt = [
     { value: "ADMIN", label: "Admin" },
-    { value: "EMPLOYEE", label: "Pegawai" },
+    { value: "STAFF", label: "Pegawai" },
   ];
   const usrstatopt = [
     { value: "1", label: "Aktif" },

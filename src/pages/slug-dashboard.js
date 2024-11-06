@@ -41,6 +41,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [isToggling, setIsToggling] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
   const [selectedMode, setSelectedMode] = useState("add");
+  const [selectedSource, setSelectedSource] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -168,7 +169,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
             setTotalPages(0);
           }
           break;
-        case "JOB":
+        case "PROGRAM":
           data = await apiRead(formData, "kpi", "viewprogram");
           if (data && data.data && data.data.length > 0) {
             setProgramData(data.data);
@@ -229,18 +230,18 @@ const DashboardSlugPage = ({ parent, slug }) => {
         case "PEGAWAI":
           switchedData = currentData(emplyData, "idemployee");
           log(`id ${slug} data switched:`, switchedData.idemployee);
-          setInputData({ name: switchedData.name, phone: switchedData.phone, email: switchedData.email, address: switchedData.address, position: switchedData.position, level: switchedData.akses });
+          setInputData({ name: switchedData.name, phone: switchedData.phone, email: switchedData.email, address: switchedData.address, position: switchedData.position, level: switchedData.akses, division: switchedData.division });
           break;
-        case "JOB":
+        case "PROGRAM":
           switchedData = currentData(programData, "idprogram");
           log(`id ${slug} data switched:`, switchedData.idprogram);
           formData.append("data", JSON.stringify({ secret, idprogram: params }));
           data = await apiRead(formData, "kpi", "viewprogramdetail");
           const programdetaildata = data.data;
           if (data && programdetaildata && programdetaildata.length > 0) {
-            setInputData({ pic: switchedData.picname, program_status: switchedData.progstatus, program: programdetaildata.map((item) => ({ idsource: item.idsource, sourcename: item.sourcename, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot })), note: switchedData.note });
+            setInputData({ pic: switchedData.picname, program_status: switchedData.progstatus, note: switchedData.note, program: programdetaildata.map((item) => ({ idsource: item.idsource, sourcename: item.sourcename, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, startdate: item.startdate, enddate: item.enddate })) });
           } else {
-            setInputData({ pic: switchedData.picname, program_status: switchedData.progstatus, program: [{ idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" }], note: switchedData.note });
+            setInputData({ pic: switchedData.picname, program_status: switchedData.progstatus, note: switchedData.note, program: [{ idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "", startdate: "", enddate: "" }] });
           }
           break;
         default:
@@ -260,10 +261,10 @@ const DashboardSlugPage = ({ parent, slug }) => {
     let requiredFields = [];
     switch (slug) {
       case "PEGAWAI":
-        requiredFields = ["name", "phone", "email", "address", "position", "level"];
+        requiredFields = ["name", "phone", "email", "address", "position", "level", "division"];
         break;
-      case "JOB":
-        requiredFields = ["pic", "program_status", "program.progname", "program.channel", "program.target", "program.bobot"];
+      case "PROGRAM":
+        requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.startdate", "program.enddate"];
         break;
       default:
         requiredFields = [];
@@ -287,10 +288,10 @@ const DashboardSlugPage = ({ parent, slug }) => {
       let submittedData;
       switch (slug) {
         case "PEGAWAI":
-          submittedData = { secret, name: inputData.name, phone: inputData.phone, email: inputData.email, address: inputData.address, position: inputData.position, akses: inputData.level };
+          submittedData = { secret, name: inputData.name, phone: inputData.phone, email: inputData.email, address: inputData.address, position: inputData.position, akses: inputData.level, divisi: inputData.division };
           break;
-        case "JOB":
-          submittedData = { secret, idpic: inputData.pic, picname: inputData.name, progstatus: inputData.program_status, detail: inputData.program.map((item) => ({ idsource: inputData.pic, sourcename: inputData.name, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot })), note: inputData.note };
+        case "PROGRAM":
+          submittedData = { secret, idpic: inputData.pic, picname: inputData.name, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program.map((item) => ({ idsource: item.idsource, sourcename: selectedSource.name, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, startdate: item.startdate, enddate: item.enddate })) };
           break;
         default:
           break;
@@ -414,6 +415,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "position", "text")}>
                       Jabatan
                     </TH>
+                    <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "division", "text")}>
+                      Divisi
+                    </TH>
                     <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "akses", "text")}>
                       Akses Level
                     </TH>
@@ -431,6 +435,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <TD>{data.email}</TD>
                       <TD>{data.address}</TD>
                       <TD>{data.position}</TD>
+                      <TD>{data.division}</TD>
                       <TD>{data.akses}</TD>
                     </TR>
                   ))}
@@ -440,13 +445,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
             {isUserShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
             {isFormOpen && (
               <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Data Pegawai" : "Tambah Data Pegawai"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "cudemployee")} loading={isSubmitting} onClose={closeForm}>
-                <Fieldset>
-                  <Input id={`${pageid}-name`} radius="md" labelText="Nama" placeholder="John Doe" type="text" name="name" value={inputData.name} onChange={handleInputChange} errorContent={errors.name} isRequired />
-                  <Input id={`${pageid}-address`} radius="md" labelText="Alamat" placeholder="123 Main Street" type="text" name="address" value={inputData.address} onChange={handleInputChange} errorContent={errors.address} isRequired />
-                </Fieldset>
+                <Input id={`${pageid}-name`} radius="md" labelText="Nama" placeholder="John Doe" type="text" name="name" value={inputData.name} onChange={handleInputChange} errorContent={errors.name} isRequired />
                 <Fieldset>
                   <Input id={`${pageid}-phone`} radius="md" labelText="Nomor Telepon" placeholder="0812xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleInputChange} errorContent={errors.phone} isRequired />
                   <Input id={`${pageid}-email`} radius="md" labelText="Email" placeholder="employee@mail.com" type="email" name="email" value={inputData.email} onChange={handleInputChange} errorContent={errors.email} isRequired />
+                </Fieldset>
+                <Fieldset>
+                  <Input id={`${pageid}-address`} radius="md" labelText="Alamat" placeholder="123 Main Street" type="text" name="address" value={inputData.address} onChange={handleInputChange} errorContent={errors.address} isRequired />
+                  <Input id={`${pageid}-division`} radius="md" labelText="Divisi" placeholder="Masukkan nama divisi" type="text" name="division" value={inputData.division} onChange={handleInputChange} errorContent={errors.division} isRequired />
                 </Fieldset>
                 <Fieldset>
                   <Input id={`${pageid}-position`} radius="md" labelText="Jabatan" placeholder="SPV" type="text" name="position" value={inputData.position} onChange={handleInputChange} errorContent={errors.position} isRequired />
@@ -456,7 +462,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
             )}
           </Fragment>
         );
-      case "JOB":
+      case "PROGRAM":
         const handlePICChange = (value) => {
           const selectedPIC = allEmplyData.find((item) => item.idemployee === value);
           if (selectedPIC) {
@@ -464,6 +470,16 @@ const DashboardSlugPage = ({ parent, slug }) => {
             log(`selected pic ${selectedPIC.name}:${selectedPIC.idemployee}`);
           } else {
             setInputData({ ...inputData, pic: "", name: "" });
+          }
+        };
+
+        const handleSourceChange = (value) => {
+          const selectedSRC = allEmplyData.find((item) => item.idemployee === value);
+          if (selectedSRC) {
+            setSelectedSource(selectedSRC);
+            log(`selected source ${selectedSRC.name}:${selectedSRC.idemployee}`);
+          } else {
+            setSelectedSource(null);
           }
         };
 
@@ -541,10 +557,13 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         {index + 1 === inputData.program.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("program")} />}
                       </Fragment>
                     }>
-                    <Input id={`${pageid}-name-${index}`} radius="full" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="progname" value={item.progname} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.progname`] ? errors[`program.${index}.progname`] : ""} isRequired />
-                    <Input id={`${pageid}-channel-${index}`} radius="full" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} isRequired />
-                    <Input id={`${pageid}-target-${index}`} radius="full" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} isRequired />
-                    <Input id={`${pageid}-bobot-${index}`} radius="full" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} isRequired />
+                    <Input id={`${pageid}-startdate-${index}`} radius="md" labelText="Tanggal Mulai" type="datetime-local" name="startdate" value={item.startdate} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.startdate`] ? errors[`program.${index}.startdate`] : ""} isRequired />
+                    <Input id={`${pageid}-enddate-${index}`} radius="md" labelText="Tanggal Berakhir" type="datetime-local" name="enddate" value={item.enddate} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.enddate`] ? errors[`program.${index}.enddate`] : ""} isRequired />
+                    <Input id={`${pageid}-name-${index}`} radius="md" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="progname" value={item.progname} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.progname`] ? errors[`program.${index}.progname`] : ""} isRequired />
+                    <Input id={`${pageid}-source-${index}`} variant="select" isSearchable radius="md" labelText="Sumber" placeholder="Pilih sumber" name="idsource" value={item.idsource} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onSelect={handleSourceChange} errorContent={errors[`program.${index}.idsource`] ? errors[`program.${index}.idsource`] : ""} isRequired />
+                    <Input id={`${pageid}-channel-${index}`} radius="md" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} isRequired />
+                    <Input id={`${pageid}-target-${index}`} radius="md" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} isRequired />
+                    <Input id={`${pageid}-bobot-${index}`} radius="md" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} isRequired />
                   </Fieldset>
                 ))}
                 <Input id={`${pageid}-note`} variant="textarea" radius="md" labelText="Catatan" placeholder="Masukkan catatan program" name="note" value={inputData.note} onChange={handleInputChange} errorContent={errors.note} rows={5} />

@@ -436,7 +436,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
               break;
           }
           break;
-        case "JOB":
+        case "PROGRAM":
           formData.append("data", JSON.stringify({ secret, idprogram: params }));
           data = await apiRead(formData, "kpi", "viewprogramdetail");
           if (data && data.data && data.data.length > 0) {
@@ -748,7 +748,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
             </DashboardBody>
           </Fragment>
         );
-      case "JOB":
+      case "PROGRAM":
         return (
           <Fragment>
             <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
