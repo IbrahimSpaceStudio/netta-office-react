@@ -109,6 +109,7 @@ export const inputSchema = {
   bobot: "",
   program_status: "",
   program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", startdate: "", enddate: "" }],
+  job: [{ description: "", note: "" }],
   division: "",
   source: "",
 };
@@ -224,6 +225,7 @@ export const errorSchema = {
   bobot: "",
   program_status: "",
   program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", startdate: "", enddate: "" }],
+  job: [{ description: "", note: "" }],
   division: "",
   source: "",
 };

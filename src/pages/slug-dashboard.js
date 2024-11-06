@@ -276,6 +276,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
       case "PROGRAM":
         requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.startdate", "program.enddate"];
         break;
+      case "JOB":
+        requiredFields = ["job.description"];
+        break;
       default:
         requiredFields = [];
         break;
@@ -302,6 +305,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
           break;
         case "PROGRAM":
           submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program.map((item) => ({ idsource: item.idsource, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, startdate: item.startdate, enddate: item.enddate })) };
+          break;
+        case "JOB":
+          submittedData = { secret, idprogdetail: selectedData, detail: inputData.job.map((item) => ({ description: item.description, note: item.note })) };
           break;
         default:
           break;
@@ -563,6 +569,11 @@ const DashboardSlugPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "JOB":
+        const openReport = (params) => {
+          setSelectedData(params);
+          setIsFormOpen(true);
+        };
+
         return (
           <Fragment>
             <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
@@ -579,6 +590,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
               <Table byNumber page={currentPage} limit={limit} isNoData={!isJobShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH type="custom">Action</TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
                       Sumber
                     </TH>
@@ -614,6 +626,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 <TBody>
                   {filteredJobData.map((data, index) => (
                     <TR key={index}>
+                      <TD type="custom">
+                        <Button size="sm" variant="line" color="var(--color-primary)" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} />
+                      </TD>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
@@ -631,20 +646,22 @@ const DashboardSlugPage = ({ parent, slug }) => {
             </DashboardBody>
             {isJobShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
             {isFormOpen && (
-              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Data Pegawai" : "Tambah Data Pegawai"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "cudemployee")} loading={isSubmitting} onClose={closeForm}>
-                <Input id={`${pageid}-name`} radius="md" labelText="Nama" placeholder="John Doe" type="text" name="name" value={inputData.name} onChange={handleInputChange} errorContent={errors.name} isRequired />
-                <Fieldset>
-                  <Input id={`${pageid}-phone`} radius="md" labelText="Nomor Telepon" placeholder="0812xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleInputChange} errorContent={errors.phone} isRequired />
-                  <Input id={`${pageid}-email`} radius="md" labelText="Email" placeholder="employee@mail.com" type="email" name="email" value={inputData.email} onChange={handleInputChange} errorContent={errors.email} isRequired />
-                </Fieldset>
-                <Fieldset>
-                  <Input id={`${pageid}-address`} radius="md" labelText="Alamat" placeholder="123 Main Street" type="text" name="address" value={inputData.address} onChange={handleInputChange} errorContent={errors.address} isRequired />
-                  <Input id={`${pageid}-division`} radius="md" labelText="Divisi" placeholder="Masukkan nama divisi" type="text" name="division" value={inputData.division} onChange={handleInputChange} errorContent={errors.division} isRequired />
-                </Fieldset>
-                <Fieldset>
-                  <Input id={`${pageid}-position`} radius="md" labelText="Jabatan" placeholder="SPV" type="text" name="position" value={inputData.position} onChange={handleInputChange} errorContent={errors.position} isRequired />
-                  <Input id={`${pageid}-level`} variant="select" noEmptyValue radius="md" labelText="Level/Akses" placeholder="Pilih level/akses" name="level" value={inputData.level} options={levelopt} onSelect={(selectedValue) => handleInputChange({ target: { name: "level", value: selectedValue } })} errorContent={errors.level} isRequired />
-                </Fieldset>
+              <SubmitForm size="md" formTitle="Report Hasil Pengerjaan" operation="add" fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addjob")} loading={isSubmitting} onClose={closeForm}>
+                {inputData.job.map((item, index) => (
+                  <Fieldset
+                    key={index}
+                    type="row"
+                    markers={`${index + 1}.`}
+                    endContent={
+                      <Fragment>
+                        <Button id={`${pageid}-delete-row-${index}`} subVariant="icon" isTooltip tooltipText="Hapus" size="sm" color={inputData.job.length <= 1 ? "var(--color-red-30)" : "var(--color-red)"} bgColor="var(--color-red-10)" iconContent={<NewTrash />} onClick={() => handleRmvRow("job", index)} isDisabled={inputData.job.length <= 1} />
+                        {index + 1 === inputData.job.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("job")} />}
+                      </Fragment>
+                    }>
+                    <Input id={`${pageid}-desc-${index}`} variant="textarea" radius="md" labelText="Deskripsi Pengerjaan" name="description" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} rows={5} isRequired />
+                    <Input id={`${pageid}-note-${index}`} variant="textarea" radius="md" labelText="Catatan" name="note" value={item.note} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.note`] ? errors[`job.${index}.note`] : ""} rows={5} />
+                  </Fieldset>
+                ))}
               </SubmitForm>
             )}
           </Fragment>
