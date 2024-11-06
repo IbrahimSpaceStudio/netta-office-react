@@ -41,13 +41,13 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [isToggling, setIsToggling] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
   const [selectedMode, setSelectedMode] = useState("add");
-  const [selectedSource, setSelectedSource] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [emplyData, setEmplyData] = useState([]);
   const [allEmplyData, setAllEmplyData] = useState([]);
   const [programData, setProgramData] = useState([]);
+  const [jobData, setJobData] = useState([]);
 
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
@@ -176,6 +176,16 @@ const DashboardSlugPage = ({ parent, slug }) => {
             setTotalPages(data.TTLPage);
           } else {
             setProgramData([]);
+            setTotalPages(0);
+          }
+          break;
+        case "JOB":
+          data = await apiRead(formData, "kpi", "viewjob");
+          if (data && data.data && data.data.length > 0) {
+            setJobData(data.data);
+            setTotalPages(data.TTLPage);
+          } else {
+            setJobData([]);
             setTotalPages(0);
           }
           break;
@@ -374,6 +384,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
 
   const { searchTerm: userSearch, handleSearch: handleUserSearch, filteredData: filteredUserData, isDataShown: isUserShown } = useSearch(emplyData, ["name", "phone", "position", "akses"]);
   const { searchTerm: programSearch, handleSearch: handleProgramSearch, filteredData: filteredProgramData, isDataShown: isProgramShown } = useSearch(programData, ["progname", "channel", "pic", "target", "bobot", "note"]);
+  const { searchTerm: jobSearch, handleSearch: handleJobSearch, filteredData: filteredJobData, isDataShown: isJobShown } = useSearch(jobData, ["sourcename"]);
 
   const renderContent = () => {
     switch (slug) {
@@ -463,26 +474,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "PROGRAM":
-        const handlePICChange = (value) => {
-          const selectedPIC = allEmplyData.find((item) => item.idemployee === value);
-          if (selectedPIC) {
-            setInputData({ ...inputData, pic: selectedPIC.idemployee, name: selectedPIC.name });
-            log(`selected pic ${selectedPIC.name}:${selectedPIC.idemployee}`);
-          } else {
-            setInputData({ ...inputData, pic: "", name: "" });
-          }
-        };
-
-        const handleSourceChange = (value) => {
-          const selectedSRC = allEmplyData.find((item) => item.idemployee === value);
-          if (selectedSRC) {
-            setSelectedSource(selectedSRC);
-            log(`selected source ${selectedSRC.name}:${selectedSRC.idemployee}`);
-          } else {
-            setSelectedSource(null);
-          }
-        };
-
         return (
           <Fragment>
             <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
@@ -524,7 +515,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {filteredProgramData.map((data, index) => (
-                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/job/${toPathname(data.idprogram)}`)} onEdit={() => openEdit(data.idprogram)}>
+                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idprogram)}`)} onEdit={() => openEdit(data.idprogram)}>
                       <TD type="custom">
                         <ToggleSwitch id={data.idprogram} isChecked={data.progstatus === "1"} onToggle={(e) => handleToggle(e, data.idprogram, data.progstatus === "0" ? "1" : "0", "cudprogram")} isLoading={isToggling} />
                       </TD>
@@ -567,6 +558,93 @@ const DashboardSlugPage = ({ parent, slug }) => {
                   </Fieldset>
                 ))}
                 <Input id={`${pageid}-note`} variant="textarea" radius="md" labelText="Catatan" placeholder="Masukkan catatan program" name="note" value={inputData.note} onChange={handleInputChange} errorContent={errors.note} rows={5} />
+              </SubmitForm>
+            )}
+          </Fragment>
+        );
+      case "JOB":
+        return (
+          <Fragment>
+            <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
+            <DashboardToolbar>
+              <DashboardTool>
+                <Input id={`search-data-${pageid}`} radius="md" isLabeled={false} placeholder="Cari data ..." type="text" value={jobSearch} onChange={(e) => handleJobSearch(e.target.value)} startContent={<Search />} />
+              </DashboardTool>
+              <DashboardTool>
+                <Input id={`limit-data-${pageid}`} isLabeled={false} variant="select" noEmptyValue radius="md" placeholder="Baris per Halaman" value={limit} options={limitopt} onSelect={handleLimitChange} isReadonly={!isJobShown} />
+                <Button id={`add-new-data-${pageid}`} radius="md" buttonText="Tambah" onClick={openForm} startContent={<Plus />} />
+              </DashboardTool>
+            </DashboardToolbar>
+            <DashboardBody>
+              <Table byNumber page={currentPage} limit={limit} isNoData={!isJobShown} isLoading={isFetching}>
+                <THead>
+                  <TR>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
+                      Sumber
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "progname", "text")}>
+                      Nama Program
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "channel", "text")}>
+                      Channel
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "text")}>
+                      Tipe
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "stardate", "date")}>
+                      Tanggal Mulai
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "enddate", "date")}>
+                      Tanggal Berakhir
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "target", "number")}>
+                      Target
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "value", "number")}>
+                      Nilai
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "achievement", "number")}>
+                      Pencapaian
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "score", "number")}>
+                      Skor
+                    </TH>
+                  </TR>
+                </THead>
+                <TBody>
+                  {filteredJobData.map((data, index) => (
+                    <TR key={index}>
+                      <TD>{data.sourcename}</TD>
+                      <TD>{data.progname}</TD>
+                      <TD>{data.channel}</TD>
+                      <TD>{data.type}</TD>
+                      <TD>{newDate(data.stardate, "id")}</TD>
+                      <TD>{newDate(data.enddate, "id")}</TD>
+                      <TD>{data.target}</TD>
+                      <TD>{data.value}</TD>
+                      <TD>{data.achievement}</TD>
+                      <TD>{data.score}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </DashboardBody>
+            {isJobShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+            {isFormOpen && (
+              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Data Pegawai" : "Tambah Data Pegawai"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "cudemployee")} loading={isSubmitting} onClose={closeForm}>
+                <Input id={`${pageid}-name`} radius="md" labelText="Nama" placeholder="John Doe" type="text" name="name" value={inputData.name} onChange={handleInputChange} errorContent={errors.name} isRequired />
+                <Fieldset>
+                  <Input id={`${pageid}-phone`} radius="md" labelText="Nomor Telepon" placeholder="0812xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleInputChange} errorContent={errors.phone} isRequired />
+                  <Input id={`${pageid}-email`} radius="md" labelText="Email" placeholder="employee@mail.com" type="email" name="email" value={inputData.email} onChange={handleInputChange} errorContent={errors.email} isRequired />
+                </Fieldset>
+                <Fieldset>
+                  <Input id={`${pageid}-address`} radius="md" labelText="Alamat" placeholder="123 Main Street" type="text" name="address" value={inputData.address} onChange={handleInputChange} errorContent={errors.address} isRequired />
+                  <Input id={`${pageid}-division`} radius="md" labelText="Divisi" placeholder="Masukkan nama divisi" type="text" name="division" value={inputData.division} onChange={handleInputChange} errorContent={errors.division} isRequired />
+                </Fieldset>
+                <Fieldset>
+                  <Input id={`${pageid}-position`} radius="md" labelText="Jabatan" placeholder="SPV" type="text" name="position" value={inputData.position} onChange={handleInputChange} errorContent={errors.position} isRequired />
+                  <Input id={`${pageid}-level`} variant="select" noEmptyValue radius="md" labelText="Level/Akses" placeholder="Pilih level/akses" name="level" value={inputData.level} options={levelopt} onSelect={(selectedValue) => handleInputChange({ target: { name: "level", value: selectedValue } })} errorContent={errors.level} isRequired />
+                </Fieldset>
               </SubmitForm>
             )}
           </Fragment>
