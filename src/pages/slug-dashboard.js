@@ -587,7 +587,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
               </DashboardTool>
             </DashboardToolbar>
             <DashboardBody>
-              <Table byNumber page={currentPage} limit={limit} isNoData={!isJobShown} isLoading={isFetching}>
+              <Table byNumber isClickable page={currentPage} limit={limit} isNoData={!isJobShown} isLoading={isFetching}>
                 <THead>
                   <TR>
                     <TH type="custom">Action</TH>
@@ -625,7 +625,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {filteredJobData.map((data, index) => (
-                    <TR key={index}>
+                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idprogramdetail)}`)}>
                       <TD type="custom">
                         <Button size="sm" variant="line" color="var(--color-primary)" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} />
                       </TD>

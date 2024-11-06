@@ -83,6 +83,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const [odontoHistoryData, setOdontoHistoryData] = useState([]);
   const [selectedToothNo, setSelectedToothNo] = useState(null);
   const [programDetailData, setProgramDetailData] = useState([]);
+  const [jobDetailData, setJobDetailData] = useState([]);
 
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
@@ -227,6 +228,19 @@ const DashboardParamsPage = ({ parent, slug }) => {
             setIsDataShown(true);
           } else {
             setProgramDetailData([]);
+            setPageTitle("");
+            setIsDataShown(false);
+          }
+          break;
+        case "JOB":
+          formData.append("data", JSON.stringify({ secret, idprogdetail: params }));
+          data = await apiRead(formData, "kpi", "viewjobdetail");
+          if (data && data.data && data.data.length > 0) {
+            setJobDetailData(data.data);
+            setPageTitle(`Detail Job #${params}`);
+            setIsDataShown(true);
+          } else {
+            setJobDetailData([]);
             setPageTitle("");
             setIsDataShown(false);
           }
@@ -432,6 +446,43 @@ const DashboardParamsPage = ({ parent, slug }) => {
                       <TD>{data.capaian}</TD>
                       <TD>{data.bobot}</TD>
                       <TD>{data.skor}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </DashboardBody>
+          </Fragment>
+        );
+      case "JOB":
+        return (
+          <Fragment>
+            <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
+            <DashboardToolbar>
+              <DashboardTool>
+                <Button id={`${pageid}-back-previous-page`} buttonText="Kembali" radius="md" onClick={goBack} startContent={<Arrow direction="left" />} />
+              </DashboardTool>
+            </DashboardToolbar>
+            <DashboardBody>
+              <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
+                <THead>
+                  <TR>
+                    <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "actioncreate", "date")}>
+                      Tanggal Pengerjaan
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "description", "text")}>
+                      Deskripsi Pengerjaan
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "note", "text")}>
+                      Catatan
+                    </TH>
+                  </TR>
+                </THead>
+                <TBody>
+                  {jobDetailData.map((data, index) => (
+                    <TR key={index}>
+                      <TD>{newDate(data.actioncreate, "id")}</TD>
+                      <TD>{data.description}</TD>
+                      <TD>{data.note}</TD>
                     </TR>
                   ))}
                 </TBody>
