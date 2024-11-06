@@ -340,30 +340,23 @@ const DashboardSlugPage = ({ parent, slug }) => {
     const successmsg = `Selamat! Data terpilih dari ${toTitleCase(slug)} berhasil dihapus.`;
     const errormsg = "Terjadi kesalahan saat menghapus data. Mohon periksa koneksi internet anda dan coba lagi.";
     const confirm = window.confirm(confirmmsg);
-    if (confirm) {
-      try {
-        let submittedData;
-        switch (slug) {
-          case "PEGAWAI":
-            submittedData = { secret };
-            break;
-          default:
-            break;
-        }
-        const formData = new FormData();
-        formData.append("data", JSON.stringify(submittedData));
-        formData.append("iddel", params);
-        if (slug === "PEGAWAI") {
-          formData.append("status", "1");
-        }
-        await apiCrud(formData, scope, endpoint);
-        showNotifications("success", successmsg);
-        await fetchData();
-        await fetchAdditionalData();
-      } catch (error) {
-        showNotifications("danger", errormsg);
-        console.error(errormsg, error);
-      }
+    if (!confirm) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ secret }));
+    formData.append("iddel", params);
+    formData.append("status", "2");
+    setIsToggling(true);
+    try {
+      await apiCrud(formData, scope, endpoint);
+      showNotifications("success", successmsg);
+      await fetchData();
+    } catch (error) {
+      showNotifications("danger", errormsg);
+      console.error(errormsg, error);
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -408,7 +401,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
               </DashboardTool>
             </DashboardToolbar>
             <DashboardBody>
-              <Table byNumber isEditable page={currentPage} limit={limit} isNoData={!isUserShown} isLoading={isFetching}>
+              <Table byNumber isEditable isDeletable page={currentPage} limit={limit} isNoData={!isUserShown} isLoading={isFetching}>
                 <THead>
                   <TR>
                     <TH type="custom" isSorted onSort={() => handleSort(emplyData, setEmplyData, "status", "number")}>
@@ -442,7 +435,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {filteredUserData.map((data, index) => (
-                    <TR key={index} onEdit={() => openEdit(data.idemployee)}>
+                    <TR key={index} onEdit={() => openEdit(data.idemployee)} onDelete={() => handleDelete(data.idemployee, "cudemployee")}>
                       <TD type="custom">
                         <ToggleSwitch id={data.idemployee} isChecked={data.status === "0"} onToggle={(e) => handleToggle(e, data.idemployee, data.status === "0" ? "1" : "0", "cudemployee")} isLoading={isToggling} />
                       </TD>
