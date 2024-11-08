@@ -12,6 +12,8 @@ import { inputSchema, errorSchema } from "../libs/sources/common";
 import { useOptions } from "../libs/plugins/helper";
 import Pages from "../components/frames/pages";
 import { DashboardContainer, DashboardHead, DashboardToolbar, DashboardTool, DashboardBody } from "./overview-dashboard";
+import TabGroup from "../components/input-controls/tab-group";
+import TabSwitch from "../components/input-controls/tab-switch";
 import Table, { THead, TBody, TR, TH, TD } from "../components/contents/table";
 import { SubmitForm } from "../components/input-controls/forms";
 import Fieldset, { ToggleSwitch } from "../components/input-controls/inputs";
@@ -75,6 +77,11 @@ const DashboardSlugPage = ({ parent, slug }) => {
     const updatedvalues = [...inputData[field]];
     const updatederrors = errors[field] ? [...errors[field]] : [];
     updatedvalues[index] = { ...updatedvalues[index], [name]: value };
+    if (field === "program" && name === "date") {
+      if (value < 1 || value > 31) {
+        updatederrors[index].date = "Mohon masukkan tanggal di rentang 1 sampai 31" || "";
+      }
+    }
     if (!updatederrors[index]) {
       updatederrors[index] = {};
     } else {
@@ -304,7 +311,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
           submittedData = { secret, name: inputData.name, phone: inputData.phone, email: inputData.email, address: inputData.address, position: inputData.position, akses: inputData.level, divisi: inputData.division };
           break;
         case "PROGRAM":
-          submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program.map((item) => ({ idsource: item.idsource, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, startdate: item.startdate, enddate: item.enddate })) };
+          submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program };
           break;
         case "JOB":
           submittedData = { secret, idprogdetail: selectedData, detail: inputData.job.map((item) => ({ description: item.description, note: item.note })) };
@@ -473,6 +480,40 @@ const DashboardSlugPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "PROGRAM":
+        const handleTypeChange = (index, type) => {
+          const newDetails = [...inputData.program];
+          newDetails[index].type = type;
+          setInputData({ ...inputData, program: newDetails });
+        };
+
+        const getTypeButton = (index) => {
+          const buttons = [
+            { label: "Harian", onClick: () => handleTypeChange(index, "1"), active: inputData.program[index].type === "1" },
+            { label: "Mingguan", onClick: () => handleTypeChange(index, "2"), active: inputData.program[index].type === "2" },
+            { label: "Bulanan", onClick: () => handleTypeChange(index, "3"), active: inputData.program[index].type === "3" },
+          ];
+          return buttons;
+        };
+
+        const handleDayChange = (index, sday) => {
+          const newDetails = [...inputData.program];
+          newDetails[index].day = sday;
+          setInputData({ ...inputData, program: newDetails });
+        };
+
+        const getDayButton = (index) => {
+          const buttons = [
+            { label: "Senin", onClick: () => handleDayChange(index, "1"), active: inputData.program[index].day === "1" },
+            { label: "Selasa", onClick: () => handleDayChange(index, "2"), active: inputData.program[index].day === "2" },
+            { label: "Rabu", onClick: () => handleDayChange(index, "3"), active: inputData.program[index].day === "3" },
+            { label: "Kamis", onClick: () => handleDayChange(index, "4"), active: inputData.program[index].day === "4" },
+            { label: "Jumat", onClick: () => handleDayChange(index, "5"), active: inputData.program[index].day === "5" },
+            { label: "Sabtu", onClick: () => handleDayChange(index, "6"), active: inputData.program[index].day === "6" },
+            { label: "Minggu", onClick: () => handleDayChange(index, "7"), active: inputData.program[index].day === "7" },
+          ];
+          return buttons;
+        };
+
         return (
           <Fragment>
             <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
@@ -547,8 +588,31 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         {index + 1 === inputData.program.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("program")} />}
                       </Fragment>
                     }>
-                    <Input id={`${pageid}-startdate-${index}`} radius="md" labelText="Tanggal Mulai" type="datetime-local" name="startdate" value={item.startdate} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.startdate`] ? errors[`program.${index}.startdate`] : ""} isRequired />
-                    <Input id={`${pageid}-enddate-${index}`} radius="md" labelText="Tanggal Berakhir" type="datetime-local" name="enddate" value={item.enddate} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.enddate`] ? errors[`program.${index}.enddate`] : ""} isRequired />
+                    <section style={{ width: "100%" }}>
+                      <TabGroup buttons={getTypeButton(index)} />
+                    </section>
+                    {item.type === "1" ? (
+                      <Fragment>
+                        <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                        <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                      </Fragment>
+                    ) : item.type === "2" ? (
+                      <Fragment>
+                        <section style={{ width: "100%" }}>
+                          <TabSwitch buttons={getDayButton(index)} />
+                        </section>
+                        <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                        <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                      </Fragment>
+                    ) : (
+                      <Fragment>
+                        <section style={{ width: "100%" }}>
+                          <Input id={`${pageid}-date-${index}`} radius="md" labelText="Tanggal" type="number" placeholder="Masukkan tanggal" name="date" value={item.date} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.date`] ? errors[`program.${index}.date`] : ""} isRequired min={1} max={31} />
+                        </section>
+                        <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                        <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                      </Fragment>
+                    )}
                     <Input id={`${pageid}-name-${index}`} radius="md" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="progname" value={item.progname} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.progname`] ? errors[`program.${index}.progname`] : ""} isRequired />
                     <Input id={`${pageid}-source-${index}`} variant="select" isSearchable radius="md" labelText="Sumber" placeholder="Pilih sumber" name="idsource" value={item.idsource} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onSelect={(selectedValue) => handleRowChange("program", index, { target: { name: "idsource", value: selectedValue } })} errorContent={errors[`program.${index}.idsource`] ? errors[`program.${index}.idsource`] : ""} isRequired />
                     <Input id={`${pageid}-channel-${index}`} radius="md" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} isRequired />

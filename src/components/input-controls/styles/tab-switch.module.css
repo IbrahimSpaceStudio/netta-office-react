@@ -14,7 +14,7 @@
   padding: var(--pixel-10) var(--pixel-15);
   background-color: transparent;
   flex: 1;
-  border-radius: 9999px;
+  border-radius: var(--pixel-5);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -49,7 +49,7 @@
 .tabSwitch {
   margin: 0;
   align-self: stretch;
-  border-radius: 9999px;
+  border-radius: var(--pixel-10);
   background-color: var(--color-light);
   overflow: hidden;
   padding: var(--pixel-5);
