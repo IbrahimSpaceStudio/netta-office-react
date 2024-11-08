@@ -112,6 +112,12 @@ export const inputSchema = {
   job: [{ description: "", note: "" }],
   division: "",
   source: "",
+  married_status: "",
+  npwp: "",
+  bank_name: "",
+  bank_number: "",
+  bank_holder: "",
+  phone_office: "",
 };
 
 export const errorSchema = {
@@ -228,4 +234,10 @@ export const errorSchema = {
   job: [{ description: "", note: "" }],
   division: "",
   source: "",
+  married_status: "",
+  npwp: "",
+  bank_name: "",
+  bank_number: "",
+  bank_holder: "",
+  phone_office: "",
 };

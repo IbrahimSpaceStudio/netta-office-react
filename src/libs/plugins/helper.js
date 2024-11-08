@@ -14,6 +14,10 @@ export const useOptions = () => {
     { value: "ADMIN", label: "Admin" },
     { value: "STAFF", label: "Pegawai" },
   ];
+  const marriedstatopt = [
+    { value: "kawin", label: "Kawin" },
+    { value: "belum kawin", label: "Belum Kawin" },
+  ];
   const usrstatopt = [
     { value: "1", label: "Aktif" },
     { value: "0", label: "Nonaktif" },
@@ -70,7 +74,7 @@ export const useOptions = () => {
     { value: "Diagnosa Sekunder", label: "Diagnosa Sekunder" },
     { value: "Diagnosa Komplikasi", label: "Diagnosa Komplikasi" },
   ];
-  return { limitopt, genderopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt };
+  return { limitopt, genderopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt };
 };
 
 export const useOdontogram = () => {

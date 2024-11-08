@@ -28,7 +28,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
-  const { limitopt, levelopt, usrstatopt } = useOptions();
+  const { limitopt, levelopt, usrstatopt, marriedstatopt } = useOptions();
 
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
   const pagetitle = slug ? `${toTitleCase(slug)}` : "Slug Dashboard";
@@ -39,6 +39,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [isFetching, setIsFetching] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isFormFetching, setIsFormFetching] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
@@ -61,6 +62,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
     setErrors({ ...errorSchema });
   };
 
+  const handleImageSelect = (file) => setSelectedImage(file);
   const handleLimitChange = (value) => {
     setLimit(value);
     setCurrentPage(1);
@@ -247,7 +249,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
         case "PEGAWAI":
           switchedData = currentData(emplyData, "idemployee");
           log(`id ${slug} data switched:`, switchedData.idemployee);
-          setInputData({ name: switchedData.name, phone: switchedData.phone, email: switchedData.email, address: switchedData.address, position: switchedData.position, level: switchedData.akses, division: switchedData.division });
+          setInputData({ name: switchedData.name, phone: switchedData.phone, email: switchedData.email, address: switchedData.address, position: switchedData.position, level: switchedData.akses, division: switchedData.division, married_status: switchedData.merid, nik: switchedData.noktp, npwp: switchedData.npwp, bank_name: switchedData.bankname, bank_holder: switchedData.rekname, bank_number: switchedData.reknumber, phone_office: switchedData.hp });
           break;
         case "PROGRAM":
           switchedData = currentData(programData, "idprogram");
@@ -278,7 +280,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
     let requiredFields = [];
     switch (slug) {
       case "PEGAWAI":
-        requiredFields = ["name", "phone", "email", "address", "position", "level", "division"];
+        requiredFields = ["name", "phone", "email", "address", "position", "level", "division", "married_status", "nik", "npwp", "bank_name", "bank_holder", "bank_number"];
         break;
       case "PROGRAM":
         requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.startdate", "program.enddate"];
@@ -308,7 +310,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
       let submittedData;
       switch (slug) {
         case "PEGAWAI":
-          submittedData = { secret, name: inputData.name, phone: inputData.phone, email: inputData.email, address: inputData.address, position: inputData.position, akses: inputData.level, divisi: inputData.division };
+          submittedData = { secret, name: inputData.name, phone: inputData.phone, email: inputData.email, address: inputData.address, position: inputData.position, akses: inputData.level, divisi: inputData.division, merid: inputData.married_status, noktp: inputData.nik, npwp: inputData.npwp, bankname: inputData.bank_name, rekname: inputData.bank_holder, reknumber: inputData.bank_number, hp: inputData.phone_office };
           break;
         case "PROGRAM":
           submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program };
@@ -321,6 +323,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
       }
       const formData = new FormData();
       formData.append("data", JSON.stringify(submittedData));
+      if (slug === "PEGAWAI") {
+        formData.append("fileimg", selectedImage);
+      }
       if (action === "update") {
         formData.append("idedit", selectedData);
       }
@@ -461,19 +466,31 @@ const DashboardSlugPage = ({ parent, slug }) => {
             </DashboardBody>
             {isUserShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
             {isFormOpen && (
-              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Data Pegawai" : "Tambah Data Pegawai"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "cudemployee")} loading={isSubmitting} onClose={closeForm}>
-                <Input id={`${pageid}-name`} radius="md" labelText="Nama" placeholder="John Doe" type="text" name="name" value={inputData.name} onChange={handleInputChange} errorContent={errors.name} isRequired />
+              <SubmitForm size="lg" formTitle={selectedMode === "update" ? "Ubah Data Pegawai" : "Tambah Data Pegawai"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "cudemployee")} loading={isSubmitting} onClose={closeForm}>
                 <Fieldset>
-                  <Input id={`${pageid}-phone`} radius="md" labelText="Nomor Telepon" placeholder="0812xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleInputChange} errorContent={errors.phone} isRequired />
+                  <Input id={`${pageid}-name`} radius="md" labelText="Nama" placeholder="John Doe" type="text" name="name" value={inputData.name} onChange={handleInputChange} errorContent={errors.name} isRequired />
                   <Input id={`${pageid}-email`} radius="md" labelText="Email" placeholder="employee@mail.com" type="email" name="email" value={inputData.email} onChange={handleInputChange} errorContent={errors.email} isRequired />
+                  <Input id={`${pageid}-phone`} radius="md" labelText="Nomor Telepon Pribadi" placeholder="0812xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleInputChange} errorContent={errors.phone} isRequired />
                 </Fieldset>
                 <Fieldset>
                   <Input id={`${pageid}-address`} radius="md" labelText="Alamat" placeholder="123 Main Street" type="text" name="address" value={inputData.address} onChange={handleInputChange} errorContent={errors.address} isRequired />
-                  <Input id={`${pageid}-division`} radius="md" labelText="Divisi" placeholder="Masukkan nama divisi" type="text" name="division" value={inputData.division} onChange={handleInputChange} errorContent={errors.division} isRequired />
+                  <Input id={`${pageid}-npwp`} radius="md" labelText="NPWP" placeholder="Masukkan NPWP" type="number" name="npwp" value={inputData.npwp} onChange={handleInputChange} errorContent={errors.npwp} isRequired />
+                  <Input id={`${pageid}-phone-office`} radius="md" labelText="Nomor Telepon Kantor" placeholder="0812xxxx" type="tel" name="phone_office" value={inputData.phone_office} onChange={handleInputChange} errorContent={errors.phone_office} />
                 </Fieldset>
                 <Fieldset>
                   <Input id={`${pageid}-position`} radius="md" labelText="Jabatan" placeholder="SPV" type="text" name="position" value={inputData.position} onChange={handleInputChange} errorContent={errors.position} isRequired />
+                  <Input id={`${pageid}-division`} radius="md" labelText="Divisi" placeholder="Masukkan nama divisi" type="text" name="division" value={inputData.division} onChange={handleInputChange} errorContent={errors.division} isRequired />
                   <Input id={`${pageid}-level`} variant="select" noEmptyValue radius="md" labelText="Level/Akses" placeholder="Pilih level/akses" name="level" value={inputData.level} options={levelopt} onSelect={(selectedValue) => handleInputChange({ target: { name: "level", value: selectedValue } })} errorContent={errors.level} isRequired />
+                </Fieldset>
+                <Fieldset>
+                  <Input id={`${pageid}-nik`} radius="md" labelText="NIK" placeholder="327xxxx" type="number" name="nik" value={inputData.nik} onChange={handleInputChange} errorContent={errors.nik} isRequired />
+                  <Input id={`${pageid}-married-status`} variant="select" noEmptyValue radius="md" labelText="Status Pernikahan" placeholder="Pilih status" name="married_status" value={inputData.married_status} options={marriedstatopt} onSelect={(selectedValue) => handleInputChange({ target: { name: "married_status", value: selectedValue } })} errorContent={errors.married_status} isRequired />
+                  <Input id={`${pageid}-scanid`} variant="upload" accept="image/*" isPreview={false} radius="md" labelText="Scan KTP" name="image" initialFile={inputData.image} onSelect={handleImageSelect} />
+                </Fieldset>
+                <Fieldset>
+                  <Input id={`${pageid}-bank-name`} radius="md" labelText="Nama Bank" placeholder="Bank BNI" type="text" name="bank_name" value={inputData.bank_name} onChange={handleInputChange} errorContent={errors.bank_name} isRequired />
+                  <Input id={`${pageid}-bank-number`} radius="md" labelText="Nomor Rekening" placeholder="43265122" type="number" name="bank_number" value={inputData.bank_number} onChange={handleInputChange} errorContent={errors.bank_number} isRequired />
+                  <Input id={`${pageid}-bank-holder`} radius="md" labelText="Nama Penerima" placeholder="John Doe" type="text" name="bank_holder" value={inputData.bank_holder} onChange={handleInputChange} errorContent={errors.bank_holder} isRequired />
                 </Fieldset>
               </SubmitForm>
             )}
