@@ -230,7 +230,7 @@
 }
 
 .table::-webkit-scrollbar {
-  height: var(--pixel-5);
+  height: var(--pixel-25);
 }
 
 .table::-webkit-scrollbar-track {

@@ -168,5 +168,8 @@ export const useAlias = () => {
   const reservAlias = (status) => {
     return status === "1" ? "Completed" : status === "2" ? "Reschedule" : status === "3" ? "Canceled" : "Pending";
   };
-  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias };
+  const typeAlias = (type) => {
+    return type === "1" ? "Harian" : type === "2" ? "Mingguan" : "Bulanan";
+  };
+  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias };
 };

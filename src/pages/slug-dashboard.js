@@ -3,13 +3,16 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useContent, useFormat, useDevmode } from "@ibrahimstudio/react";
 import { Input } from "@ibrahimstudio/input";
 import { Button } from "@ibrahimstudio/button";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { useAuth } from "../libs/securities/auth";
 import { useApi } from "../libs/apis/office";
 import { useNotifications } from "../components/feedbacks/context/notifications-context";
 import { useSearch } from "../libs/plugins/handler";
 import { getNestedValue, inputValidator } from "../libs/plugins/controller";
 import { inputSchema, errorSchema } from "../libs/sources/common";
-import { useOptions } from "../libs/plugins/helper";
+import { useOptions, useAlias } from "../libs/plugins/helper";
 import Pages from "../components/frames/pages";
 import { DashboardContainer, DashboardHead, DashboardToolbar, DashboardTool, DashboardBody } from "./overview-dashboard";
 import TabGroup from "../components/input-controls/tab-group";
@@ -20,6 +23,10 @@ import Fieldset, { ToggleSwitch } from "../components/input-controls/inputs";
 import { Search, Plus, NewTrash } from "../components/contents/icons";
 import Pagination from "../components/navigations/pagination";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.tz.setDefault("Asia/Jakarta");
+
 const DashboardSlugPage = ({ parent, slug }) => {
   const navigate = useNavigate();
   const { newDate } = useFormat();
@@ -29,6 +36,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
   const { limitopt, levelopt, usrstatopt, marriedstatopt } = useOptions();
+  const { typeAlias } = useAlias();
 
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
   const pagetitle = slug ? `${toTitleCase(slug)}` : "Slug Dashboard";
@@ -46,6 +54,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [selectedMode, setSelectedMode] = useState("add");
   const [sortOrder, setSortOrder] = useState("asc");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [timers, setTimers] = useState({});
 
   const [emplyData, setEmplyData] = useState([]);
   const [allEmplyData, setAllEmplyData] = useState([]);
@@ -159,6 +168,20 @@ const DashboardSlugPage = ({ parent, slug }) => {
     setIsFormOpen(false);
   };
 
+  const calculateRemainingTime = (starttime, endtime) => {
+    const now = dayjs();
+    const today = dayjs().format("YYYY-MM-DD");
+    const start = dayjs.tz(`${today} ${starttime}`, "YYYY-MM-DD HH:mm:ss", "Asia/Jakarta");
+    const end = dayjs.tz(`${today} ${endtime}`, "YYYY-MM-DD HH:mm:ss", "Asia/Jakarta");
+    if (now.isBefore(start)) {
+      const totalDuration = end.diff(start);
+      return dayjs(totalDuration).utc().format("HH:mm:ss");
+    }
+    if (now.isAfter(end)) return "00:00:00";
+    const diff = end.diff(now);
+    return dayjs(diff).utc().format("HH:mm:ss");
+  };
+
   const fetchData = async () => {
     const errormsg = `Terjadi kesalahan saat memuat halaman ${toTitleCase(slug)}. Mohon periksa koneksi internet anda dan coba lagi.`;
     const formData = new FormData();
@@ -191,11 +214,11 @@ const DashboardSlugPage = ({ parent, slug }) => {
         case "JOB":
           data = await apiRead(formData, "kpi", "viewjob");
           if (data && data.data && data.data.length > 0) {
-            setJobData(data.data);
-            setTotalPages(data.TTLPage);
+            const resultdata = data.data[0];
+            const mergeddata = [...resultdata.bulanan, ...resultdata.harian, ...resultdata.mingguan];
+            setJobData(mergeddata);
           } else {
             setJobData([]);
-            setTotalPages(0);
           }
           break;
         default:
@@ -661,10 +684,11 @@ const DashboardSlugPage = ({ parent, slug }) => {
               </DashboardTool>
             </DashboardToolbar>
             <DashboardBody>
-              <Table byNumber isClickable page={currentPage} limit={limit} isNoData={!isJobShown} isLoading={isFetching}>
+              <Table byNumber isClickable isNoData={!isJobShown} isLoading={isFetching}>
                 <THead>
                   <TR>
                     <TH type="custom">Action</TH>
+                    <TH type="custom">Timer</TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
                       Sumber
                     </TH>
@@ -674,51 +698,40 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "channel", "text")}>
                       Channel
                     </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "text")}>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "number")}>
                       Tipe
                     </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "stardate", "date")}>
-                      Tanggal Mulai
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "starttime", "number")}>
+                      Jam Mulai
                     </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "enddate", "date")}>
-                      Tanggal Berakhir
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "endtime", "number")}>
+                      Jam Berakhir
                     </TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "target", "number")}>
                       Target
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "value", "number")}>
-                      Nilai
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "achievement", "number")}>
-                      Pencapaian
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "score", "number")}>
-                      Skor
                     </TH>
                   </TR>
                 </THead>
                 <TBody>
                   {filteredJobData.map((data, index) => (
-                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idprogramdetail)}`)}>
+                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idprogramdetail)}`)} isDanger={timers[index] === "00:00:00"}>
                       <TD type="custom">
-                        <Button size="sm" variant="line" color="var(--color-primary)" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} />
+                        <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} isDisabled={timers[index] === "00:00:00"} />
                       </TD>
+                      <TD type="custom">{timers[index]}</TD>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
-                      <TD>{data.type}</TD>
-                      <TD>{newDate(data.stardate, "id")}</TD>
-                      <TD>{newDate(data.enddate, "id")}</TD>
+                      <TD>{typeAlias(data.type)}</TD>
+                      <TD>{data.starttime}</TD>
+                      <TD>{data.endtime}</TD>
                       <TD>{data.target}</TD>
-                      <TD>{data.value}</TD>
-                      <TD>{data.achievement}</TD>
-                      <TD>{data.score}</TD>
                     </TR>
                   ))}
                 </TBody>
               </Table>
             </DashboardBody>
-            {isJobShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+            {/* {isJobShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />} */}
             {isFormOpen && (
               <SubmitForm size="md" formTitle="Report Hasil Pengerjaan" operation="add" fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addjob")} loading={isSubmitting} onClose={closeForm}>
                 {inputData.job.map((item, index) => (
@@ -744,6 +757,19 @@ const DashboardSlugPage = ({ parent, slug }) => {
         return <DashboardHead title={`Halaman Dashboard ${pagetitle} akan segera hadir.`} />;
     }
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimers((prevTimers) => {
+        const newTimers = { ...prevTimers };
+        jobData.forEach((data, index) => {
+          newTimers[index] = calculateRemainingTime(data.starttime, data.endtime);
+        });
+        return newTimers;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [jobData]);
 
   useEffect(() => {
     setInputData({ ...inputSchema });
