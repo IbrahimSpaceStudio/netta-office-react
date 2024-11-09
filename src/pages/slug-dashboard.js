@@ -55,6 +55,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [timers, setTimers] = useState({});
+  const [onPageTabId, setOnpageTabId] = useState("1");
 
   const [emplyData, setEmplyData] = useState([]);
   const [allEmplyData, setAllEmplyData] = useState([]);
@@ -671,6 +672,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
           setIsFormOpen(true);
         };
 
+        const handleOnpageTabChange = (id) => setOnpageTabId(id);
+
+        const onPageTabButton = [
+          { label: "Berjalan", onClick: () => handleOnpageTabChange("1"), active: onPageTabId === "1" },
+          { label: "Selesai", onClick: () => handleOnpageTabChange("2"), active: onPageTabId === "2" },
+          { label: "Terlewat", onClick: () => handleOnpageTabChange("3"), active: onPageTabId === "3" },
+        ];
+
         return (
           <Fragment>
             <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
@@ -683,6 +692,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 <Button id={`add-new-data-${pageid}`} radius="md" buttonText="Tambah" onClick={openForm} startContent={<Plus />} />
               </DashboardTool>
             </DashboardToolbar>
+            <TabSwitch buttons={onPageTabButton} />
             <DashboardBody>
               <Table byNumber isClickable isNoData={!isJobShown} isLoading={isFetching}>
                 <THead>
