@@ -6,8 +6,8 @@ import { Input } from "@ibrahimstudio/input";
 import { useAuth } from "../libs/securities/auth";
 import { useApi } from "../libs/apis/office";
 import { useNotifications } from "../components/feedbacks/context/notifications-context";
+import { useAlias } from "../libs/plugins/helper";
 import { getNestedValue, inputValidator } from "../libs/plugins/controller";
-import { useOptions } from "../libs/plugins/helper";
 import { inputSchema, errorSchema } from "../libs/sources/common";
 import Pages from "../components/frames/pages";
 import { DashboardContainer, DashboardHead, DashboardToolbar, DashboardTool, DashboardBody } from "./overview-dashboard";
@@ -27,7 +27,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
-  const { limitopt, paymenttypeopt, orderstatopt, stockoutstatopt, diagnoseopt } = useOptions();
+  const { typeAlias } = useAlias();
 
   const pageid = parent && slug && params ? `params-${toPathname(parent)}-${toPathname(slug)}-${toPathname(params)}` : "params-dashboard";
 
@@ -36,12 +36,9 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isDataShown, setIsDataShown] = useState(true);
   const [sortOrder, setSortOrder] = useState("asc");
-  const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
-  const [endDate, setEndDate] = useState(new Date());
   const [limit, setLimit] = useState(20);
   const [selectedData, setSelectedData] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [stockHistoryData, setStockHistoryData] = useState([]);
   const [isFormFetching, setIsFormFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedMode, setSelectedMode] = useState("add");
@@ -171,7 +168,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
           data = await apiRead(formData, "kpi", "viewprogramdetail");
           if (data && data.data && data.data.length > 0) {
             setProgramDetailData(data.data);
-            setPageTitle(`Detail Program #${params}`);
+            setPageTitle(`Detail Program ${data.data[0].name}`);
             setIsDataShown(true);
           } else {
             setProgramDetailData([]);
@@ -392,8 +389,23 @@ const DashboardParamsPage = ({ parent, slug }) => {
               <Table byNumber isEditable isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "type", "number")}>
+                      Tipe
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "starttime", "number")}>
+                      Jam Mulai
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "endtime", "number")}>
+                      Jam Berakhir
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "date", "number")}>
+                      Tanggal
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "day", "number")}>
+                      Hari
+                    </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "sourcename", "text")}>
-                      Nama PIC (source)
+                      Sumber
                     </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "progname", "text")}>
                       Nama Program
@@ -404,27 +416,24 @@ const DashboardParamsPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "target", "text")}>
                       Target
                     </TH>
-                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "capaian", "text")}>
-                      Capaian
-                    </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "bobot", "text")}>
                       Bobot
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "skor", "text")}>
-                      Skor
                     </TH>
                   </TR>
                 </THead>
                 <TBody>
                   {programDetailData.map((data, index) => (
                     <TR key={index} onEdit={() => openEdit(data.idprogramdetail)}>
+                      <TD>{typeAlias(data.type)}</TD>
+                      <TD>{data.starttime}</TD>
+                      <TD>{data.endtime}</TD>
+                      <TD>{data.date}</TD>
+                      <TD>{data.day}</TD>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
                       <TD>{data.target}</TD>
-                      <TD>{data.capaian}</TD>
                       <TD>{data.bobot}</TD>
-                      <TD>{data.skor}</TD>
                     </TR>
                   ))}
                 </TBody>
