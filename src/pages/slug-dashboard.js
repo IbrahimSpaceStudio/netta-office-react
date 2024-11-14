@@ -721,8 +721,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
               <Table byNumber isClickable isNoData={!isJobShown} isLoading={isFetching}>
                 <THead>
                   <TR>
-                    <TH type="custom">Action</TH>
-                    <TH type="custom">Timer</TH>
+                    <Fragment>
+                      {onPageTabId === "1" && (
+                        <Fragment>
+                          <TH type="custom">Action</TH>
+                          <TH type="custom">Timer</TH>
+                        </Fragment>
+                      )}
+                    </Fragment>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
                       Sumber
                     </TH>
@@ -748,11 +754,17 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {filteredJobData.map((data, index) => (
-                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idprogramdetail)}`)} isDanger={timers[index] === "00:00:00"}>
-                      <TD type="custom">
-                        <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} isDisabled={timers[index] === "00:00:00"} />
-                      </TD>
-                      <TD type="custom">{timers[index]}</TD>
+                    <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idprogramdetail)}`)} isComplete={onPageTabId === "2"} isDanger={timers[index] === "00:00:00" && onPageTabId !== "2"}>
+                      <Fragment>
+                        {onPageTabId === "1" && (
+                          <Fragment>
+                            <TD type="custom">
+                              <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} isDisabled={timers[index] === "00:00:00"} />
+                            </TD>
+                            <TD type="custom">{timers[index]}</TD>
+                          </Fragment>
+                        )}
+                      </Fragment>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
