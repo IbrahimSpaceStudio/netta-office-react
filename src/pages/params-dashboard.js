@@ -262,7 +262,19 @@ const DashboardParamsPage = ({ parent, slug }) => {
     let requiredFields = [];
     switch (slug) {
       case "PROGRAM":
-        requiredFields = [];
+        if (selectedMode === "update") {
+          if (jobType === "3") {
+            requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time", "date"];
+          } else {
+            requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time"];
+          }
+        } else {
+          if (jobType === "3") {
+            requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
+          } else {
+            requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
+          }
+        }
         break;
       default:
         requiredFields = [];
@@ -287,7 +299,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
       switch (slug) {
         case "PROGRAM":
           if (selectedMode === "update") {
-            submittedData = { secret, idprogdetail: inputData.id, idsource: inputData.idsource, progname: inputData.program, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: inputData.day, date: inputData.date, type: inputData.type };
+            submittedData = { secret, idprogdetail: inputData.id, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType };
           } else {
             submittedData = { secret, idpic: programDetailData[0].idpic, idprogram: params, detail: inputData.program };
           }
@@ -424,12 +436,12 @@ const DashboardParamsPage = ({ parent, slug }) => {
                   <Fragment>
                     <Input id={`${pageid}-name`} radius="md" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="program_name" value={inputData.program_name} onChange={handleInputChange} errorContent={errors.program_name} isRequired />
                     <TabGroup buttons={typebuttons} />
-                    {inputData.type === "1" ? (
+                    {jobType === "1" ? (
                       <Fieldset>
                         <Input id={`${pageid}-starttime`} radius="md" labelText="Jam Mulai" type="time" name="start_time" value={inputData.start_time} onChange={handleInputChange} errorContent={errors.start_time} isRequired />
                         <Input id={`${pageid}-endtime`} radius="md" labelText="Jam Berakhir" type="time" name="end_time" value={inputData.end_time} onChange={handleInputChange} errorContent={errors.end_time} isRequired />
                       </Fieldset>
-                    ) : inputData.type === "2" ? (
+                    ) : jobType === "2" ? (
                       <Fragment>
                         <TabSwitch buttons={daysbuttons} />
                         <Fieldset>

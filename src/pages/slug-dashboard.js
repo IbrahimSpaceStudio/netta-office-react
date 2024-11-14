@@ -327,7 +327,11 @@ const DashboardSlugPage = ({ parent, slug }) => {
         requiredFields = ["name", "phone", "email", "address", "position", "level", "division", "married_status", "nik", "npwp", "bank_name", "bank_holder", "bank_number"];
         break;
       case "PROGRAM":
-        requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.startdate", "program.enddate"];
+        if (inputData.type === "3") {
+          requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
+        } else {
+          requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
+        }
         break;
       case "JOB":
         requiredFields = ["job.description"];
@@ -541,6 +545,40 @@ const DashboardSlugPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "PROGRAM":
+        const handleTypeChange = (index, type) => {
+          const newDetails = [...inputData.program];
+          newDetails[index].type = type;
+          setInputData({ ...inputData, program: newDetails });
+        };
+
+        const getTypeButton = (index) => {
+          const buttons = [
+            { label: "Harian", onClick: () => handleTypeChange(index, "1"), active: inputData.program[index].type === "1" },
+            { label: "Mingguan", onClick: () => handleTypeChange(index, "2"), active: inputData.program[index].type === "2" },
+            { label: "Bulanan", onClick: () => handleTypeChange(index, "3"), active: inputData.program[index].type === "3" },
+          ];
+          return buttons;
+        };
+
+        const handleDayChange = (index, sday) => {
+          const newDetails = [...inputData.program];
+          newDetails[index].day = sday;
+          setInputData({ ...inputData, program: newDetails });
+        };
+
+        const getDayButton = (index) => {
+          const buttons = [
+            { label: "Senin", onClick: () => handleDayChange(index, "1"), active: inputData.program[index].day === "1" },
+            { label: "Selasa", onClick: () => handleDayChange(index, "2"), active: inputData.program[index].day === "2" },
+            { label: "Rabu", onClick: () => handleDayChange(index, "3"), active: inputData.program[index].day === "3" },
+            { label: "Kamis", onClick: () => handleDayChange(index, "4"), active: inputData.program[index].day === "4" },
+            { label: "Jumat", onClick: () => handleDayChange(index, "5"), active: inputData.program[index].day === "5" },
+            { label: "Sabtu", onClick: () => handleDayChange(index, "6"), active: inputData.program[index].day === "6" },
+            { label: "Minggu", onClick: () => handleDayChange(index, "7"), active: inputData.program[index].day === "7" },
+          ];
+          return buttons;
+        };
+
         return (
           <Fragment>
             <DashboardHead title={pagetitle} />
@@ -598,6 +636,58 @@ const DashboardSlugPage = ({ parent, slug }) => {
               </Table>
             </DashboardBody>
             {isProgramShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+            {isFormOpen && (
+              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Data Program" : "Tambah Data Program"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "cudprogram")} loading={isSubmitting} onClose={closeForm}>
+                <Fieldset>
+                  <Input id={`${pageid}-pic`} variant="select" isSearchable radius="md" labelText="PIC" placeholder="Pilih PIC" name="pic" value={inputData.pic} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onSelect={(selectedValue) => handleInputChange({ target: { name: "pic", value: selectedValue } })} errorContent={errors.pic} isRequired />
+                  <Input id={`${pageid}-status`} variant="select" isSearchable radius="md" labelText="Status Program" placeholder="Pilih Status" name="program_status" value={inputData.program_status} options={usrstatopt} onSelect={(selectedValue) => handleInputChange({ target: { name: "program_status", value: selectedValue } })} errorContent={errors.program_status} isRequired />
+                </Fieldset>
+                {inputData.program.map((item, index) => (
+                  <Fieldset
+                    key={index}
+                    type="row"
+                    markers={`${index + 1}.`}
+                    endContent={
+                      <Fragment>
+                        <Button id={`${pageid}-delete-row-${index}`} subVariant="icon" isTooltip tooltipText="Hapus" size="sm" color={inputData.program.length <= 1 ? "var(--color-red-30)" : "var(--color-red)"} bgColor="var(--color-red-10)" iconContent={<NewTrash />} onClick={() => handleRmvRow("program", index)} isDisabled={inputData.program.length <= 1} />
+                        {index + 1 === inputData.program.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("program")} />}
+                      </Fragment>
+                    }>
+                    <section style={{ width: "100%" }}>
+                      <TabGroup buttons={getTypeButton(index)} />
+                    </section>
+                    {item.type === "1" ? (
+                      <Fragment>
+                        <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                        <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                      </Fragment>
+                    ) : item.type === "2" ? (
+                      <Fragment>
+                        <section style={{ width: "100%" }}>
+                          <TabSwitch buttons={getDayButton(index)} />
+                        </section>
+                        <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                        <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                      </Fragment>
+                    ) : (
+                      <Fragment>
+                        <section style={{ width: "100%" }}>
+                          <Input id={`${pageid}-date-${index}`} radius="md" labelText="Tanggal" type="number" placeholder="Masukkan tanggal" name="date" value={item.date} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.date`] ? errors[`program.${index}.date`] : ""} isRequired min={1} max={31} />
+                        </section>
+                        <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                        <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                      </Fragment>
+                    )}
+                    <Input id={`${pageid}-name-${index}`} radius="md" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="progname" value={item.progname} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.progname`] ? errors[`program.${index}.progname`] : ""} isRequired />
+                    <Input id={`${pageid}-source-${index}`} variant="select" isSearchable radius="md" labelText="Sumber" placeholder="Pilih sumber" name="idsource" value={item.idsource} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onSelect={(selectedValue) => handleRowChange("program", index, { target: { name: "idsource", value: selectedValue } })} errorContent={errors[`program.${index}.idsource`] ? errors[`program.${index}.idsource`] : ""} isRequired />
+                    <Input id={`${pageid}-channel-${index}`} radius="md" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} isRequired />
+                    <Input id={`${pageid}-target-${index}`} radius="md" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} isRequired />
+                    <Input id={`${pageid}-bobot-${index}`} radius="md" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} isRequired />
+                  </Fieldset>
+                ))}
+                <Input id={`${pageid}-note`} variant="textarea" radius="md" labelText="Catatan" placeholder="Masukkan catatan program" name="note" value={inputData.note} onChange={handleInputChange} errorContent={errors.note} rows={5} />
+              </SubmitForm>
+            )}
           </Fragment>
         );
       case "JOB":
