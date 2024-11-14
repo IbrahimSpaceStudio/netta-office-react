@@ -4,6 +4,11 @@ export const useOptions = () => {
     { value: 100, label: "Baris per Halaman: 100" },
     { value: 500, label: "Baris per Halaman: 500" },
   ];
+  const jobtypeopt = [
+    { value: "1", label: "Harian" },
+    { value: "2", label: "Mingguan" },
+    { value: "3", label: "Bulanan" },
+  ];
   const genderopt = [
     { value: "male", label: "Laki-laki" },
     { value: "female", label: "Perempuan" },
@@ -72,7 +77,7 @@ export const useOptions = () => {
     { value: "Diagnosa Sekunder", label: "Diagnosa Sekunder" },
     { value: "Diagnosa Komplikasi", label: "Diagnosa Komplikasi" },
   ];
-  return { limitopt, genderopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt };
+  return { limitopt, jobtypeopt, genderopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt };
 };
 
 export const useOdontogram = () => {

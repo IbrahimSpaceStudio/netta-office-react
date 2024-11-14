@@ -35,7 +35,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
-  const { limitopt, levelopt, usrstatopt, marriedstatopt } = useOptions();
+  const { limitopt, levelopt, usrstatopt, marriedstatopt, jobtypeopt } = useOptions();
   const { typeAlias } = useAlias();
 
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
@@ -334,7 +334,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
         }
         break;
       case "JOB":
-        requiredFields = ["job.description"];
+        requiredFields = ["job.description", "job.type"];
         break;
       default:
         requiredFields = [];
@@ -364,7 +364,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
           submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program };
           break;
         case "JOB":
-          submittedData = { secret, idprogdetail: selectedData, detail: inputData.job.map((item) => ({ description: item.description, note: item.note })) };
+          submittedData = { secret, idprogdetail: selectedData, detail: inputData.job.map((item) => ({ description: item.description, note: item.note, type: item.type })) };
           break;
         default:
           break;
@@ -792,6 +792,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       </Fragment>
                     }>
                     <Input id={`${pageid}-desc-${index}`} variant="textarea" radius="md" labelText="Deskripsi Pengerjaan" name="description" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} rows={5} isRequired />
+                    <Input id={`${pageid}-type-${index}`} variant="select" isSearchable radius="md" labelText="Tipe Program" placeholder="Pilih tipe" name="type" value={item.type} options={jobtypeopt} onSelect={(selectedValue) => handleRowChange("job", index, { target: { name: "type", value: selectedValue } })} errorContent={errors[`job.${index}.type`] ? errors[`job.${index}.type`] : ""} isRequired />
                     <Input id={`${pageid}-note-${index}`} variant="textarea" radius="md" labelText="Catatan" name="note" value={item.note} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.note`] ? errors[`job.${index}.note`] : ""} rows={5} />
                   </Fieldset>
                 ))}
