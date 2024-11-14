@@ -7,123 +7,59 @@ import { useAuth } from "../libs/securities/auth";
 import { useApi } from "../libs/apis/office";
 import { useNotifications } from "../components/feedbacks/context/notifications-context";
 import { getNestedValue, inputValidator } from "../libs/plugins/controller";
-import { useOptions, useOdontogram } from "../libs/plugins/helper";
+import { useOptions } from "../libs/plugins/helper";
 import { inputSchema, errorSchema } from "../libs/sources/common";
 import Pages from "../components/frames/pages";
 import { DashboardContainer, DashboardHead, DashboardToolbar, DashboardTool, DashboardBody } from "./overview-dashboard";
-import OdontoForm, { OdontoHistory, HistoryTr, OdontoGram, GramSet, GramRows, GramBlock, GramMarker, OdontoCondition, ConditionLi } from "../components/contents/odonto-form";
-import Grid, { GridItem } from "../components/contents/grid";
-import Fieldset from "../components/input-controls/inputs";
 import { SubmitForm } from "../components/input-controls/forms";
-import OnpageForm, { FormFooter } from "../components/input-controls/onpage-forms";
 import Table, { THead, TBody, TR, TH, TD } from "../components/contents/table";
+import { Arrow, Plus, NewTrash } from "../components/contents/icons";
+import Fieldset from "../components/input-controls/inputs";
 import TabGroup from "../components/input-controls/tab-group";
 import TabSwitch from "../components/input-controls/tab-switch";
-import { LoadingContent } from "../components/feedbacks/screens";
-import { Arrow, Plus, NewTrash, Check, Filter } from "../components/contents/icons";
-import Pagination from "../components/navigations/pagination";
 
 const DashboardParamsPage = ({ parent, slug }) => {
   const { params } = useParams();
   const navigate = useNavigate();
   const { toPathname, toTitleCase } = useContent();
   const { log } = useDevmode();
-  const { newDate, newPrice } = useFormat();
-  const { isLoggedin, secret, idoutlet, level, cctr } = useAuth();
+  const { newDate } = useFormat();
+  const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
   const { limitopt, paymenttypeopt, orderstatopt, stockoutstatopt, diagnoseopt } = useOptions();
-  const { topleft, topright, centertopleft, centertopright, centerbotleft, centerbotright, botleft, botright } = useOdontogram();
 
   const pageid = parent && slug && params ? `params-${toPathname(parent)}-${toPathname(slug)}-${toPathname(params)}` : "params-dashboard";
 
   const [pageTitle, setPageTitle] = useState("");
   const [isFetching, setIsFetching] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isDataShown, setIsDataShown] = useState(true);
   const [sortOrder, setSortOrder] = useState("asc");
   const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
   const [endDate, setEndDate] = useState(new Date());
   const [limit, setLimit] = useState(20);
   const [selectedData, setSelectedData] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [selectedBranch, setSelectedBranch] = useState(idoutlet);
-
-  const [tabId, setTabId] = useState("1");
-  const [subTabId, setSubTabId] = useState("1");
   const [stockHistoryData, setStockHistoryData] = useState([]);
-  const [allBranchData, setAllBranchData] = useState([]);
-  const [orderDetailData, setOrderDetailData] = useState([]);
-  const [rscodeData, setRscodeData] = useState([]);
-  const [anamesaData, setAnamesaData] = useState([]);
-  const [odontogramData, setOdontogramData] = useState([]);
-  const [inspectData, setInspectData] = useState([]);
-  const [photoMedic, setPhotoMedic] = useState([]);
-  const [alkesData, setAlkesData] = useState([]);
-  const [recipeData, setRecipeData] = useState([]);
-  const [historyOrderData, setHistoryOrderData] = useState([]);
-  const [allDiagnoseData, setAllDiagnoseData] = useState([]);
-  const [rkmDiagnosaData, setRkmDiagnosaData] = useState([]);
   const [isFormFetching, setIsFormFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedMode, setSelectedMode] = useState("add");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [allservicedata, setAllservicedata] = useState([]);
-  const [branchDentistData, setBranchDentistData] = useState([]);
-  const [allStockData, setAllStockData] = useState([]);
-  const [categoryStockData, setCategoryStockData] = useState([]);
-  const [fvaListData, setFvaListData] = useState([]);
-  const [labData, setLabData] = useState([]);
-  const [selectedCondition, setSelectedCondition] = useState(null);
-  const [conditionData, setConditionData] = useState([]);
-  const [userConditionData, setUserConditionData] = useState(null);
-  const [odontoHistoryData, setOdontoHistoryData] = useState([]);
-  const [selectedToothNo, setSelectedToothNo] = useState(null);
   const [programDetailData, setProgramDetailData] = useState([]);
   const [jobDetailData, setJobDetailData] = useState([]);
+  const [allEmplyData, setAllEmplyData] = useState([]);
+  const [jobType, setJobType] = useState("1");
+  const [day, setDay] = useState("1");
 
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
-  const [dmfT, setDmfT] = useState("0");
-  const [defT, setDefT] = useState("0");
 
   const goBack = () => navigate(-1);
-  const handlePageChange = (page) => setCurrentPage(page);
-  const handleImageSelect = (file) => setSelectedImage(file);
-  const handleBranchChange = (value) => setSelectedBranch(value);
-  const handleLimitChange = (value) => {
-    setLimit(value);
-    setCurrentPage(1);
-  };
 
   const restoreInputState = () => {
     setInputData({ ...inputSchema });
     setErrors({ ...errorSchema });
-  };
-
-  const handleAddRow = (field) => {
-    let newitems = {};
-    if (field === "alkesitem") {
-      newitems = { idstock: "", categorystock: "", subcategorystock: "", sku: "", itemname: "", unit: "", qty: "", status: "" };
-    } else if (field === "order") {
-      newitems = { service: "", servicetype: "", price: "" };
-    }
-    const updatedvalues = [...inputData[field], newitems];
-    const updatederrors = errors[field] ? [...errors[field], newitems] : [{}];
-    setInputData({ ...inputData, [field]: updatedvalues });
-    setErrors({ ...errors, [field]: updatederrors });
-  };
-
-  const handleRmvRow = (field, index) => {
-    const updatedrowvalue = [...inputData[field]];
-    const updatedrowerror = errors[field] ? [...errors[field]] : [];
-    updatedrowvalue.splice(index, 1);
-    updatedrowerror.splice(index, 1);
-    setInputData({ ...inputData, [field]: updatedrowvalue });
-    setErrors({ ...errors, [field]: updatedrowerror });
   };
 
   const openForm = () => {
@@ -134,6 +70,12 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const closeForm = () => {
     restoreInputState();
     setIsFormOpen(false);
+  };
+
+  const openEdit = (params) => {
+    switchData(params);
+    setSelectedMode("update");
+    setIsFormOpen(true);
   };
 
   const handleInputChange = (e) => {
@@ -158,22 +100,9 @@ const DashboardParamsPage = ({ parent, slug }) => {
     const updatedvalues = [...inputData[field]];
     const updatederrors = errors[field] ? [...errors[field]] : [];
     updatedvalues[index] = { ...updatedvalues[index], [name]: value };
-    if (field === "order" && name === "servicetype" && value !== "RESERVATION") {
-      const selectedService = updatedvalues[index].service;
-      const serviceData = allservicedata.find((service) => service["Nama Layanan"].servicename === selectedService);
-      if (serviceData) {
-        const selectedType = serviceData["Jenis Layanan"].find((type) => type.servicetypename === value);
-        if (selectedType) {
-          updatedvalues[index].price = selectedType.serviceprice || "";
-        }
-      }
-    }
-    if (field === "alkesitem" && name === "itemname") {
-      const selectedItem = allStockData.find((s) => s.itemname === value);
-      if (selectedItem) {
-        updatedvalues[index].idstock = selectedItem.idstock || "";
-        updatedvalues[index].sku = selectedItem.sku || "";
-        updatedvalues[index].unit = selectedItem.unit || "";
+    if (field === "program" && name === "date") {
+      if (value < 1 || value > 31) {
+        updatederrors[index].date = "Mohon masukkan tanggal di rentang 1 sampai 31" || "";
       }
     }
     if (!updatederrors[index]) {
@@ -183,6 +112,26 @@ const DashboardParamsPage = ({ parent, slug }) => {
     }
     setInputData({ ...inputData, [field]: updatedvalues });
     setErrors({ ...errors, [field]: updatederrors });
+  };
+
+  const handleAddRow = (field) => {
+    let newitems = {};
+    if (field === "program") {
+      newitems = { idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" };
+    }
+    const updatedvalues = [...inputData[field], newitems];
+    const updatederrors = errors[field] ? [...errors[field], newitems] : [{}];
+    setInputData({ ...inputData, [field]: updatedvalues });
+    setErrors({ ...errors, [field]: updatederrors });
+  };
+
+  const handleRmvRow = (field, index) => {
+    const updatedrowvalue = [...inputData[field]];
+    const updatedrowerror = errors[field] ? [...errors[field]] : [];
+    updatedrowvalue.splice(index, 1);
+    updatedrowerror.splice(index, 1);
+    setInputData({ ...inputData, [field]: updatedrowvalue });
+    setErrors({ ...errors, [field]: updatedrowerror });
   };
 
   const handleSort = (data, setData, params, type) => {
@@ -214,9 +163,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
     const errormsg = `Terjadi kesalahan saat memuat halaman ${toTitleCase(slug)} ${toTitleCase(params)}. Mohon periksa koneksi internet anda dan coba lagi.`;
     setIsFetching(true);
     const formData = new FormData();
-    const addtFormData = new FormData();
     let data;
-    let addtdata;
     try {
       switch (slug) {
         case "PROGRAM":
@@ -260,64 +207,15 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const fetchAdditionalData = async () => {
     const errormsg = "Terjadi kesalahan saat memuat data tambahan. Mohon periksa koneksi internet anda dan coba lagi.";
     const formData = new FormData();
-    const addtFormData = new FormData();
     formData.append("data", JSON.stringify({ secret }));
     setIsOptimizing(true);
     try {
-      // const servicedata = await apiRead(formData, "office", "searchservice");
-      // if (servicedata && servicedata.data && servicedata.data.length > 0) {
-      //   setAllservicedata(servicedata.data);
-      // } else {
-      //   setAllservicedata([]);
-      // }
-      // const catstockdata = await apiRead(formData, "office", "searchcategorystock");
-      // if (catstockdata && catstockdata.data && catstockdata.data.length > 0) {
-      //   setCategoryStockData(catstockdata.data);
-      // } else {
-      //   setCategoryStockData([]);
-      // }
-      // const fvadata = await apiRead(formData, "office", "viewlistva");
-      // const allfvadata = fvadata.data;
-      // const staticdata = [{ code: "INVOICE", country: "ID", currency: "IDR", is_activated: true, name: "Invoice Xendit" }];
-      // const mergedvadata = [...staticdata, ...allfvadata];
-      // const filteredfvadata = mergedvadata.filter((va) => va.is_activated === true);
-      // if (filteredfvadata && filteredfvadata.length > 0) {
-      //   setFvaListData(filteredfvadata);
-      // } else {
-      //   setFvaListData([]);
-      // }
-      // addtFormData.append("data", JSON.stringify({ secret, kodeoutlet: cctr }));
-      // const dentistdata = await apiRead(addtFormData, "office", "viewdentistoutlet");
-      // if (dentistdata && dentistdata.data && dentistdata.data.length > 0) {
-      //   setBranchDentistData(dentistdata.data);
-      // } else {
-      //   setBranchDentistData([]);
-      // }
-      // const branchdata = await apiRead(formData, "office", "viewoutletall");
-      // if (branchdata && branchdata.data && branchdata.data.length > 0) {
-      //   setAllBranchData(branchdata.data);
-      // } else {
-      //   setAllBranchData([]);
-      // }
-      // const stockdata = await apiRead(formData, "office", "searchstock");
-      // if (stockdata && stockdata.data && stockdata.data.length > 0) {
-      //   setAllStockData(stockdata.data);
-      // } else {
-      //   setAllStockData([]);
-      // }
-      // addtFormData.append("data", JSON.stringify({ secret, idmedics: params }));
-      // const rscodedata = await apiRead(addtFormData, "office", "searchrscode");
-      // if (rscodedata && rscodedata.data && rscodedata.data.length > 0) {
-      //   setRscodeData(rscodedata.data);
-      // } else {
-      //   setRscodeData([]);
-      // }
-      // const diagdata = await apiRead(formData, "office", "viewdiagnosis");
-      // if (diagdata && diagdata.data && diagdata.data.length > 0) {
-      //   setAllDiagnoseData(diagdata.data);
-      // } else {
-      //   setAllDiagnoseData([]);
-      // }
+      const emplydata = await apiRead(formData, "kpi", "searchemployee");
+      if (emplydata && emplydata.data && emplydata.data.length > 0) {
+        setAllEmplyData(emplydata.data);
+      } else {
+        setAllEmplyData([]);
+      }
     } catch (error) {
       showNotifications("danger", errormsg);
       console.error(errormsg, error);
@@ -326,11 +224,44 @@ const DashboardParamsPage = ({ parent, slug }) => {
     }
   };
 
-  const handleSubmit = async (e, endpoint) => {
+  const switchData = async (params) => {
+    setSelectedData(params);
+    const currentData = (arraydata, identifier) => {
+      if (typeof identifier === "string") {
+        return arraydata.find((item) => getNestedValue(item, identifier) === params);
+      } else {
+        return arraydata.find((item) => item[identifier] === params);
+      }
+    };
+    const errormsg = `Terjadi kesalahan saat memuat data. Mohon periksa koneksi internet anda dan coba lagi.`;
+    let switchedData;
+    setIsFormFetching(true);
+    try {
+      switch (slug) {
+        case "PROGRAM":
+          switchedData = currentData(programDetailData, "idprogramdetail");
+          log(`id ${slug} data switched:`, switchedData.idprogramdetail);
+          setInputData({ id: switchedData.idprogramdetail, idsource: switchedData.idsource, program_name: switchedData.progname, channel: switchedData.channel, target: switchedData.target, bobot: switchedData.bobot, start_time: switchedData.starttime, end_time: switchedData.endtime, day: switchedData.day, date: switchedData.date, type: switchedData.type });
+          setJobType(switchedData.type);
+          setDay(switchedData.day);
+          break;
+        default:
+          setSelectedData(null);
+          break;
+      }
+    } catch (error) {
+      showNotifications("danger", errormsg);
+      console.error(errormsg, error);
+    } finally {
+      setIsFormFetching(false);
+    }
+  };
+
+  const handleSubmit = async (e, endpoint, scope = "kpi") => {
     e.preventDefault();
     let requiredFields = [];
     switch (slug) {
-      case "REKAM MEDIS":
+      case "PROGRAM":
         requiredFields = [];
         break;
       default:
@@ -339,11 +270,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
     }
     const validationErrors = inputValidator(inputData, requiredFields);
     if (Object.keys(validationErrors).length > 0) {
-      if (slug === "REKAM MEDIS" && tabId === "2" && subTabId === "1") {
-        showNotifications("danger", "Mohon isi semua nilai DMF dan DeF sebelum menyimpan.");
-      } else {
-        setErrors(validationErrors);
-      }
+      setErrors(validationErrors);
       return;
     }
     const action = e.nativeEvent.submitter.getAttribute("data-action");
@@ -358,25 +285,22 @@ const DashboardParamsPage = ({ parent, slug }) => {
     try {
       let submittedData;
       switch (slug) {
-        case "REKAM MEDIS":
+        case "PROGRAM":
+          if (selectedMode === "update") {
+            submittedData = { secret, idprogdetail: inputData.id, idsource: inputData.idsource, progname: inputData.program, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: inputData.day, date: inputData.date, type: inputData.type };
+          } else {
+            submittedData = { secret, idpic: programDetailData[0].idpic, idprogram: params, detail: inputData.program };
+          }
           break;
         default:
           break;
       }
       const formData = new FormData();
       formData.append("data", JSON.stringify(submittedData));
-      formData.append("fileimg", selectedImage);
-      if (action === "update") {
-        formData.append("idedit", selectedData);
-      }
-      await apiCrud(formData, "office", endpoint);
+      await apiCrud(formData, scope, endpoint);
       showNotifications("success", successmsg);
       log("submitted data:", submittedData);
-      if (slug === "REKAM MEDIS" && tabId === "2" && subTabId === "1") {
-        setOdontoHistoryData(odontoHistoryData.filter((item) => item["tooth"].idconditiontooth !== ""));
-      } else if (slug === "REKAM MEDIS" && tabId === "1" && subTabId === "4") {
-        closeForm();
-      }
+      closeForm();
       await fetchData();
       await fetchAdditionalData();
     } catch (error) {
@@ -387,27 +311,70 @@ const DashboardParamsPage = ({ parent, slug }) => {
     }
   };
 
-  const filterData = () => {
-    return stockHistoryData.filter((item) => {
-      const itemDate = new Date(item.logstockcreate);
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-  };
-
-  const formatDate = (date) => {
-    return date.toISOString().slice(0, 16);
-  };
-
   const renderContent = () => {
     switch (slug) {
       case "PROGRAM":
+        const handleTypeChange = (index, type) => {
+          const newDetails = [...inputData.program];
+          newDetails[index].type = type;
+          setInputData({ ...inputData, program: newDetails });
+        };
+
+        const getTypeButton = (index) => {
+          const buttons = [
+            { label: "Harian", onClick: () => handleTypeChange(index, "1"), active: inputData.program[index].type === "1" },
+            { label: "Mingguan", onClick: () => handleTypeChange(index, "2"), active: inputData.program[index].type === "2" },
+            { label: "Bulanan", onClick: () => handleTypeChange(index, "3"), active: inputData.program[index].type === "3" },
+          ];
+          return buttons;
+        };
+
+        const handleDayChange = (index, sday) => {
+          const newDetails = [...inputData.program];
+          newDetails[index].day = sday;
+          setInputData({ ...inputData, program: newDetails });
+        };
+
+        const getDayButton = (index) => {
+          const buttons = [
+            { label: "Senin", onClick: () => handleDayChange(index, "1"), active: inputData.program[index].day === "1" },
+            { label: "Selasa", onClick: () => handleDayChange(index, "2"), active: inputData.program[index].day === "2" },
+            { label: "Rabu", onClick: () => handleDayChange(index, "3"), active: inputData.program[index].day === "3" },
+            { label: "Kamis", onClick: () => handleDayChange(index, "4"), active: inputData.program[index].day === "4" },
+            { label: "Jumat", onClick: () => handleDayChange(index, "5"), active: inputData.program[index].day === "5" },
+            { label: "Sabtu", onClick: () => handleDayChange(index, "6"), active: inputData.program[index].day === "6" },
+            { label: "Minggu", onClick: () => handleDayChange(index, "7"), active: inputData.program[index].day === "7" },
+          ];
+          return buttons;
+        };
+
+        const handleFormOptionChange = (mode, params) => {
+          if (mode === "type") setJobType(params);
+          else setDay(params);
+        };
+
+        const typebuttons = [
+          { label: "Harian", onClick: () => handleFormOptionChange("type", "1"), active: jobType === "1" },
+          { label: "Mingguan", onClick: () => handleFormOptionChange("type", "2"), active: jobType === "2" },
+          { label: "Bulanan", onClick: () => handleFormOptionChange("type", "3"), active: jobType === "3" },
+        ];
+
+        const daysbuttons = [
+          { label: "Senin", onClick: () => handleFormOptionChange("day", "1"), active: day === "1" },
+          { label: "Selasa", onClick: () => handleFormOptionChange("day", "2"), active: day === "2" },
+          { label: "Rabu", onClick: () => handleFormOptionChange("day", "3"), active: day === "3" },
+          { label: "Kamis", onClick: () => handleFormOptionChange("day", "4"), active: day === "4" },
+          { label: "Jumat", onClick: () => handleFormOptionChange("day", "5"), active: day === "5" },
+          { label: "Sabtu", onClick: () => handleFormOptionChange("day", "6"), active: day === "6" },
+          { label: "Minggu", onClick: () => handleFormOptionChange("day", "7"), active: day === "7" },
+        ];
+
         return (
           <Fragment>
             <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
             <DashboardToolbar>
-              <DashboardTool>
-                <Button id={`${pageid}-back-previous-page`} buttonText="Kembali" radius="md" onClick={goBack} startContent={<Arrow direction="left" />} />
-              </DashboardTool>
+              <Button id={`${pageid}-back-previous-page`} buttonText="Kembali" radius="md" onClick={goBack} startContent={<Arrow direction="left" />} />
+              <Button id={`add-new-data-${pageid}`} radius="md" buttonText="Tambah" onClick={openForm} startContent={<Plus />} />
             </DashboardToolbar>
             <DashboardBody>
               <Table byNumber isEditable isNoData={!isDataShown} isLoading={isFetching}>
@@ -438,7 +405,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {programDetailData.map((data, index) => (
-                    <TR key={index} onEdit={() => {}}>
+                    <TR key={index} onEdit={() => openEdit(data.idprogramdetail)}>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
@@ -451,6 +418,105 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 </TBody>
               </Table>
             </DashboardBody>
+            {isFormOpen && (
+              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Detail Program" : "Tambah Detail Program"} operation={selectedMode} fetching={isFormFetching} onSubmit={selectedMode === "update" ? (e) => handleSubmit(e, "editprogramdetail") : (e) => handleSubmit(e, "addprogramdetail")} loading={isSubmitting} onClose={closeForm}>
+                {selectedMode === "update" ? (
+                  <Fragment>
+                    <Input id={`${pageid}-name`} radius="md" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="program_name" value={inputData.program_name} onChange={handleInputChange} errorContent={errors.program_name} isRequired />
+                    <TabGroup buttons={typebuttons} />
+                    {inputData.type === "1" ? (
+                      <Fieldset>
+                        <Input id={`${pageid}-starttime`} radius="md" labelText="Jam Mulai" type="time" name="start_time" value={inputData.start_time} onChange={handleInputChange} errorContent={errors.start_time} isRequired />
+                        <Input id={`${pageid}-endtime`} radius="md" labelText="Jam Berakhir" type="time" name="end_time" value={inputData.end_time} onChange={handleInputChange} errorContent={errors.end_time} isRequired />
+                      </Fieldset>
+                    ) : inputData.type === "2" ? (
+                      <Fragment>
+                        <TabSwitch buttons={daysbuttons} />
+                        <Fieldset>
+                          <Input id={`${pageid}-starttime`} radius="md" labelText="Jam Mulai" type="time" name="start_time" value={inputData.start_time} onChange={handleInputChange} errorContent={errors.start_time} isRequired />
+                          <Input id={`${pageid}-endtime`} radius="md" labelText="Jam Berakhir" type="time" name="end_time" value={inputData.end_time} onChange={handleInputChange} errorContent={errors.end_time} isRequired />
+                        </Fieldset>
+                      </Fragment>
+                    ) : (
+                      <Fragment>
+                        <Input id={`${pageid}-date`} radius="md" labelText="Tanggal" type="number" placeholder="Masukkan tanggal" name="date" value={inputData.date} onChange={handleInputChange} errorContent={errors.date} isRequired min={1} max={31} />
+                        <Fieldset>
+                          <Input id={`${pageid}-starttime`} radius="md" labelText="Jam Mulai" type="time" name="start_time" value={inputData.start_time} onChange={handleInputChange} errorContent={errors.start_time} isRequired />
+                          <Input id={`${pageid}-endtime`} radius="md" labelText="Jam Berakhir" type="time" name="end_time" value={inputData.end_time} onChange={handleInputChange} errorContent={errors.end_time} isRequired />
+                        </Fieldset>
+                      </Fragment>
+                    )}
+                    <Fieldset>
+                      <Input id={`${pageid}-source`} variant="select" isSearchable radius="md" labelText="Sumber" placeholder="Pilih sumber" name="idsource" value={inputData.idsource} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onSelect={(selectedValue) => handleInputChange({ target: { name: "idsource", value: selectedValue } })} errorContent={errors.idsource} isRequired />
+                      <Input id={`${pageid}-channel`} radius="md" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={inputData.channel} onChange={handleInputChange} errorContent={errors.channel} isRequired />
+                    </Fieldset>
+                    <Fieldset>
+                      <Input id={`${pageid}-target`} radius="md" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={inputData.target} onChange={handleInputChange} errorContent={errors.target} isRequired />
+                      <Input id={`${pageid}-bobot`} radius="md" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={inputData.bobot} onChange={handleInputChange} errorContent={errors.bobot} isRequired />
+                    </Fieldset>
+                  </Fragment>
+                ) : (
+                  <Fragment>
+                    {inputData.program.map((item, index) => (
+                      <Fieldset
+                        key={index}
+                        type="row"
+                        markers={`${index + 1}.`}
+                        endContent={
+                          <Fragment>
+                            <Button id={`${pageid}-delete-row-${index}`} subVariant="icon" isTooltip tooltipText="Hapus" size="sm" color={inputData.program.length <= 1 ? "var(--color-red-30)" : "var(--color-red)"} bgColor="var(--color-red-10)" iconContent={<NewTrash />} onClick={() => handleRmvRow("program", index)} isDisabled={inputData.program.length <= 1} />
+                            {index + 1 === inputData.program.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("program")} />}
+                          </Fragment>
+                        }>
+                        <section style={{ width: "100%" }}>
+                          <TabGroup buttons={getTypeButton(index)} />
+                        </section>
+                        {item.type === "1" ? (
+                          <Fragment>
+                            <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                            <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                          </Fragment>
+                        ) : item.type === "2" ? (
+                          <Fragment>
+                            <section style={{ width: "100%" }}>
+                              <TabSwitch buttons={getDayButton(index)} />
+                            </section>
+                            <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                            <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                          </Fragment>
+                        ) : (
+                          <Fragment>
+                            <section style={{ width: "100%" }}>
+                              <Input id={`${pageid}-date-${index}`} radius="md" labelText="Tanggal" type="number" placeholder="Masukkan tanggal" name="date" value={item.date} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.date`] ? errors[`program.${index}.date`] : ""} isRequired min={1} max={31} />
+                            </section>
+                            <Input id={`${pageid}-starttime-${index}`} radius="md" labelText="Jam Mulai" type="time" name="starttime" value={item.starttime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.starttime`] ? errors[`program.${index}.starttime`] : ""} isRequired />
+                            <Input id={`${pageid}-endtime-${index}`} radius="md" labelText="Jam Berakhir" type="time" name="endtime" value={item.endtime} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.endtime`] ? errors[`program.${index}.endtime`] : ""} isRequired />
+                          </Fragment>
+                        )}
+                        <Input id={`${pageid}-name-${index}`} radius="md" labelText="Nama Program" placeholder="Masukkan nama program" type="text" name="progname" value={item.progname} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.progname`] ? errors[`program.${index}.progname`] : ""} isRequired />
+                        <Input
+                          id={`${pageid}-source-${index}`}
+                          variant="select"
+                          isSearchable
+                          radius="md"
+                          labelText="Sumber"
+                          placeholder="Pilih sumber"
+                          name="idsource"
+                          value={item.idsource}
+                          options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))}
+                          onSelect={(selectedValue) => handleRowChange("program", index, { target: { name: "idsource", value: selectedValue } })}
+                          errorContent={errors[`program.${index}.idsource`] ? errors[`program.${index}.idsource`] : ""}
+                          isRequired
+                        />
+                        <Input id={`${pageid}-channel-${index}`} radius="md" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} isRequired />
+                        <Input id={`${pageid}-target-${index}`} radius="md" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} isRequired />
+                        <Input id={`${pageid}-bobot-${index}`} radius="md" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} isRequired />
+                      </Fieldset>
+                    ))}
+                  </Fragment>
+                )}
+              </SubmitForm>
+            )}
           </Fragment>
         );
       case "JOB":
@@ -497,47 +563,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
 
   useEffect(() => {
     fetchData();
-  }, [slug, params, startDate, endDate, currentPage, limit, selectedBranch, tabId, subTabId]);
-
-  useEffect(() => {
-    if (slug === "STOCK") {
-      setIsDataShown(filterData().length > 0);
-    }
-  }, [slug, stockHistoryData, startDate, endDate]);
-
-  useEffect(() => {
-    if (slug === "REKAM MEDIS" && tabId === "2" && subTabId === "1") {
-      const dmfTotal = (parseInt(inputData.dmf_d || "0", 10) + parseInt(inputData.dmf_m || "0", 10) + parseInt(inputData.dmf_f || "0", 10)).toString();
-      const defTotal = (parseInt(inputData.def_d || "0", 10) + parseInt(inputData.def_e || "0", 10) + parseInt(inputData.def_f || "0", 10)).toString();
-      setDmfT(dmfTotal);
-      setDefT(defTotal);
-      setSelectedMode(userConditionData ? "update" : "add");
-      setSelectedData(userConditionData ? userConditionData.idcondition : null);
-    }
-  }, [slug, tabId, subTabId, inputData, userConditionData]);
-
-  useEffect(() => {
-    if (slug === "REKAM MEDIS") {
-      fetchAdditionalData();
-    }
-  }, [slug, params]);
-
-  useEffect(() => {
-    setSortOrder("asc");
-    if (slug === "STOCK") {
-      setStartDate(new Date(new Date().setMonth(new Date().getMonth() - 1)));
-      setEndDate(new Date());
-    }
-  }, [slug]);
-
-  useEffect(() => {
-    log("new history array:", odontoHistoryData);
-  }, [odontoHistoryData]);
-
-  useEffect(() => {
-    log("selected mode:", selectedMode);
-    log("selected data:", selectedData);
-  }, [selectedMode, selectedData]);
+    fetchAdditionalData();
+  }, [slug, params, currentPage, limit]);
 
   if (!isLoggedin) {
     return <Navigate to="/login" />;

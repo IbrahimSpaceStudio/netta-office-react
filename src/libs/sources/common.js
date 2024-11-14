@@ -108,6 +108,7 @@ export const inputSchema = {
   target: "",
   bobot: "",
   program_status: "",
+  program_name: "",
   program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", starttime: "", endtime: "", day: "", date: 1, type: "" }],
   job: [{ description: "", note: "" }],
   division: "",
@@ -118,6 +119,11 @@ export const inputSchema = {
   bank_number: "",
   bank_holder: "",
   phone_office: "",
+  idsource: "",
+  start_time: "",
+  end_time: "",
+  day: "",
+  type: "",
 };
 
 export const errorSchema = {
@@ -230,6 +236,7 @@ export const errorSchema = {
   target: "",
   bobot: "",
   program_status: "",
+  program_name: "",
   program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", starttime: "", endtime: "", day: "", date: "", type: "" }],
   job: [{ description: "", note: "" }],
   division: "",
@@ -240,4 +247,9 @@ export const errorSchema = {
   bank_number: "",
   bank_holder: "",
   phone_office: "",
+  idsource: "",
+  start_time: "",
+  end_time: "",
+  day: "",
+  type: "",
 };
