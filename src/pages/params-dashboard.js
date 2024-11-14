@@ -45,7 +45,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
   const [endDate, setEndDate] = useState(new Date());
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(20);
   const [selectedData, setSelectedData] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -410,7 +410,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
               </DashboardTool>
             </DashboardToolbar>
             <DashboardBody>
-              <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
+              <Table byNumber isEditable isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "sourcename", "text")}>
@@ -438,7 +438,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {programDetailData.map((data, index) => (
-                    <TR key={index}>
+                    <TR key={index} onEdit={() => {}}>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>

@@ -1,9 +1,7 @@
 export const useOptions = () => {
   const limitopt = [
-    { value: 5, label: "Baris per Halaman: 5" },
-    { value: 10, label: "Baris per Halaman: 10" },
     { value: 20, label: "Baris per Halaman: 20" },
-    { value: 50, label: "Baris per Halaman: 50" },
+    { value: 100, label: "Baris per Halaman: 100" },
     { value: 500, label: "Baris per Halaman: 500" },
   ];
   const genderopt = [

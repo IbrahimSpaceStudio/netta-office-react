@@ -41,7 +41,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
   const pagetitle = slug ? `${toTitleCase(slug)}` : "Slug Dashboard";
 
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isFetching, setIsFetching] = useState(false);
@@ -213,11 +213,31 @@ const DashboardSlugPage = ({ parent, slug }) => {
           }
           break;
         case "JOB":
-          data = await apiRead(formData, "kpi", "viewjob");
+          const addtFormData = new FormData();
+          switch (onPageTabId) {
+            case "1":
+              data = await apiRead(formData, "kpi", "viewjob");
+              break;
+            case "2":
+              addtFormData.append("data", JSON.stringify({ secret, status: "1" }));
+              data = await apiRead(addtFormData, "kpi", "viewjobstatus");
+              break;
+            case "3":
+              addtFormData.append("data", JSON.stringify({ secret, status: "2" }));
+              data = await apiRead(addtFormData, "kpi", "viewjobstatus");
+              break;
+            default:
+              break;
+          }
           if (data && data.data && data.data.length > 0) {
-            const resultdata = data.data[0];
-            const mergeddata = [...resultdata.bulanan, ...resultdata.harian, ...resultdata.mingguan];
-            setJobData(mergeddata);
+            if (onPageTabId === "1") {
+              const resultdata = data.data[0];
+              const mergeddata = [...resultdata.bulanan, ...resultdata.harian, ...resultdata.mingguan];
+              setJobData(mergeddata);
+            } else {
+              const resultdata = data.data;
+              setJobData(resultdata);
+            }
           } else {
             setJobData([]);
           }
@@ -282,9 +302,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
           data = await apiRead(formData, "kpi", "viewprogramdetail");
           const programdetaildata = data.data;
           if (data && programdetaildata && programdetaildata.length > 0) {
-            setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: programdetaildata.map((item) => ({ idsource: item.idsource, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, startdate: item.startdate, enddate: item.enddate })) });
+            setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: programdetaildata.map((item) => ({ idsource: item.idsource, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, starttime: item.starttime, endtime: item.endtime, day: item.day, date: item.date, type: item.type })) });
           } else {
-            setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", startdate: "", enddate: "" }] });
+            setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", starttime: "", endtime: "", day: "", date: 1, type: "" }] });
           }
           break;
         default:
@@ -426,7 +446,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
       case "PEGAWAI":
         return (
           <Fragment>
-            <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
+            <DashboardHead title={pagetitle} />
             <DashboardToolbar>
               <DashboardTool>
                 <Input id={`search-data-${pageid}`} radius="md" isLabeled={false} placeholder="Cari data ..." type="text" value={userSearch} onChange={(e) => handleUserSearch(e.target.value)} startContent={<Search />} />
@@ -557,7 +577,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
 
         return (
           <Fragment>
-            <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
+            <DashboardHead title={pagetitle} />
             <DashboardToolbar>
               <DashboardTool>
                 <Input id={`search-data-${pageid}`} radius="md" isLabeled={false} placeholder="Cari data ..." type="text" value={programSearch} onChange={(e) => handleProgramSearch(e.target.value)} startContent={<Search />} />
@@ -675,14 +695,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
         const handleOnpageTabChange = (id) => setOnpageTabId(id);
 
         const onPageTabButton = [
-          { label: "Berjalan", onClick: () => handleOnpageTabChange("1"), active: onPageTabId === "1" },
+          { label: "Proses Hari Ini", onClick: () => handleOnpageTabChange("1"), active: onPageTabId === "1" },
           { label: "Selesai", onClick: () => handleOnpageTabChange("2"), active: onPageTabId === "2" },
-          { label: "Terlewat", onClick: () => handleOnpageTabChange("3"), active: onPageTabId === "3" },
+          { label: "Tidak Di Kerjakan", onClick: () => handleOnpageTabChange("3"), active: onPageTabId === "3" },
         ];
 
         return (
           <Fragment>
-            <DashboardHead title={pagetitle} desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean ut lectus dui." />
+            <DashboardHead title={pagetitle} />
             <DashboardToolbar>
               <DashboardTool>
                 <Input id={`search-data-${pageid}`} radius="md" isLabeled={false} placeholder="Cari data ..." type="text" value={jobSearch} onChange={(e) => handleJobSearch(e.target.value)} startContent={<Search />} />
@@ -786,10 +806,10 @@ const DashboardSlugPage = ({ parent, slug }) => {
     setErrors({ ...errorSchema });
     setSelectedData(null);
     fetchData();
-  }, [slug, currentPage, limit]);
+  }, [slug, currentPage, limit, slug === "JOB" ? onPageTabId : null]);
 
   useEffect(() => {
-    setLimit(5);
+    setLimit(20);
     setCurrentPage(1);
     setSelectedMode("add");
     setSortOrder("asc");
