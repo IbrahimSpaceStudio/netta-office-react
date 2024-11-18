@@ -61,6 +61,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [allEmplyData, setAllEmplyData] = useState([]);
   const [programData, setProgramData] = useState([]);
   const [jobData, setJobData] = useState([]);
+  const [selectedJobType, setSelectedJobType] = useState("");
 
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
@@ -334,7 +335,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
         }
         break;
       case "JOB":
-        requiredFields = ["job.description", "job.type"];
+        requiredFields = ["job.description"];
         break;
       default:
         requiredFields = [];
@@ -364,7 +365,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
           submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program };
           break;
         case "JOB":
-          submittedData = { secret, idprogdetail: selectedData, detail: inputData.job.map((item) => ({ description: item.description, note: item.note, type: item.type })) };
+          submittedData = { secret, idprogdetail: selectedData, detail: inputData.job.map((item) => ({ description: item.description, note: item.note, type: selectedJobType })) };
           break;
         default:
           break;
@@ -691,9 +692,11 @@ const DashboardSlugPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "JOB":
-        const openReport = (params) => {
+        const openReport = (params, type) => {
           setSelectedData(params);
+          setSelectedJobType(type);
           setIsFormOpen(true);
+          log("selected job type:", type);
         };
 
         const handleOnpageTabChange = (id) => setOnpageTabId(id);
@@ -759,7 +762,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         {onPageTabId === "1" && (
                           <Fragment>
                             <TD type="custom">
-                              <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail)} isDisabled={timers[index] === "00:00:00"} />
+                              {timers[index] !== "00:00:00" && <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail, data.type)} />}
+                              {timers[index] === "00:00:00" && <span style={{ color: "var(--color-red)" }}>Terlewat</span>}
                             </TD>
                             <TD type="custom">{timers[index]}</TD>
                           </Fragment>
@@ -791,9 +795,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         {index + 1 === inputData.job.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("job")} />}
                       </Fragment>
                     }>
-                    <Input id={`${pageid}-desc-${index}`} variant="textarea" radius="md" labelText="Deskripsi Pengerjaan" name="description" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} rows={5} isRequired />
-                    <Input id={`${pageid}-type-${index}`} variant="select" isSearchable radius="md" labelText="Tipe Program" placeholder="Pilih tipe" name="type" value={item.type} options={jobtypeopt} onSelect={(selectedValue) => handleRowChange("job", index, { target: { name: "type", value: selectedValue } })} errorContent={errors[`job.${index}.type`] ? errors[`job.${index}.type`] : ""} isRequired />
-                    <Input id={`${pageid}-note-${index}`} variant="textarea" radius="md" labelText="Catatan" name="note" value={item.note} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.note`] ? errors[`job.${index}.note`] : ""} rows={5} />
+                    <Input id={`${pageid}-desc-${index}`} variant="textarea" radius="md" labelText="Deskripsi Pengerjaan" name="description" placeholder="Masukkan hasil pengerjaan" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} rows={5} isRequired />
+                    {/* <Input id={`${pageid}-type-${index}`} variant="select" isSearchable radius="md" labelText="Tipe Program" placeholder="Pilih tipe" name="type" value={item.type} options={jobtypeopt} onSelect={(selectedValue) => handleRowChange("job", index, { target: { name: "type", value: selectedValue } })} errorContent={errors[`job.${index}.type`] ? errors[`job.${index}.type`] : ""} isRequired /> */}
+                    <Input id={`${pageid}-note-${index}`} variant="textarea" radius="md" labelText="Catatan" name="note" placeholder="Masukkan catatan" value={item.note} onChange={(e) => handleRowChange("job", index, e)} errorContent={errors[`job.${index}.note`] ? errors[`job.${index}.note`] : ""} rows={5} />
                   </Fieldset>
                 ))}
               </SubmitForm>
