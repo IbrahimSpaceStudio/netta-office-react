@@ -1,0 +1,16 @@
+name: OKR NETTA v1.0.0 (cron)
+
+on:
+  schedule:
+    - cron: "0 23 * * *"
+
+jobs:
+  post_request:
+    name: Find Failed Job
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Make a POST request to API
+        run: node cron.js
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
