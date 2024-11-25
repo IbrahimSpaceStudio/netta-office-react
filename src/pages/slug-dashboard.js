@@ -716,7 +716,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
               </DashboardTool>
               <DashboardTool>
                 <Input id={`limit-data-${pageid}`} isLabeled={false} variant="select" noEmptyValue radius="md" placeholder="Baris per Halaman" value={limit} options={limitopt} onSelect={handleLimitChange} isReadonly={!isJobShown} />
-                <Button id={`add-new-data-${pageid}`} radius="md" buttonText="Tambah" onClick={openForm} startContent={<Plus />} />
+                {/* <Button id={`add-new-data-${pageid}`} radius="md" buttonText="Tambah" onClick={openForm} startContent={<Plus />} /> */}
               </DashboardTool>
             </DashboardToolbar>
             <TabSwitch buttons={onPageTabButton} />
