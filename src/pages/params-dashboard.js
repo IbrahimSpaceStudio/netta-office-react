@@ -238,7 +238,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
         case "PROGRAM":
           switchedData = currentData(programDetailData, "idprogramdetail");
           log(`id ${slug} data switched:`, switchedData.idprogramdetail);
-          setInputData({ id: switchedData.idprogramdetail, idsource: switchedData.idsource, program_name: switchedData.progname, channel: switchedData.channel, target: switchedData.target, bobot: switchedData.bobot, start_time: switchedData.starttime, end_time: switchedData.endtime, day: switchedData.day, date: switchedData.date, type: switchedData.type });
+          setInputData({ id: switchedData.idprogramdetail, idsource: switchedData.idsource, program_name: switchedData.progname, channel: switchedData.channel, target: switchedData.target, bobot: switchedData.bobot, start_time: switchedData.starttime, end_time: switchedData.endtime, day: switchedData.day, date: switchedData.date, type: switchedData.type, desc: switchedData.info });
           setJobType(switchedData.type);
           setDay(switchedData.day);
           break;
@@ -296,7 +296,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
       switch (slug) {
         case "PROGRAM":
           if (selectedMode === "update") {
-            submittedData = { secret, idprogdetail: inputData.id, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType };
+            submittedData = { secret, idprogdetail: selectedData, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType, info: inputData.desc };
           } else {
             submittedData = { secret, idpic: programDetailData[0].idpic, idprogram: params, detail: inputData.program };
           }
@@ -475,6 +475,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
                       <Input id={`${pageid}-target`} radius="md" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={inputData.target} onChange={handleInputChange} errorContent={errors.target} isRequired />
                       <Input id={`${pageid}-bobot`} radius="md" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={inputData.bobot} onChange={handleInputChange} errorContent={errors.bobot} isRequired />
                     </Fieldset>
+                    <Input id={`${pageid}-info`} variant="textarea" radius="md" labelText="Informasi Tambahan" placeholder="Masukkan informasi tambahan" name="desc" value={inputData.desc} onChange={handleInputChange} errorContent={errors.desc} rows={5} />
                   </Fragment>
                 ) : (
                   <Fragment>
@@ -532,6 +533,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
                         <Input id={`${pageid}-channel-${index}`} radius="md" labelText="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} isRequired />
                         <Input id={`${pageid}-target-${index}`} radius="md" labelText="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} isRequired />
                         <Input id={`${pageid}-bobot-${index}`} radius="md" labelText="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} isRequired />
+                        <Input id={`${pageid}-info-${index}`} variant="textarea" radius="md" labelText="Informasi Tambahan" placeholder="Masukkan informasi tambahan" name="info" value={item.info} onChange={(e) => handleRowChange("program", index, e)} errorContent={errors[`program.${index}.info`] ? errors[`program.${index}.info`] : ""} rows={5} />
                       </Fieldset>
                     ))}
                   </Fragment>
