@@ -1,5 +1,9 @@
 const axios = require("axios");
 
+if (!process.env.CI) {
+  require("dotenv").config({ path: ".env.development" });
+}
+
 const apiURL = process.env.REACT_APP_API_URL;
 
 async function findFailedJob() {
