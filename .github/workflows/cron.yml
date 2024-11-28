@@ -22,7 +22,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: 3. Make a POST request to API
+      - name: 3. Installing required packages
+        run: npm install
+
+      - name: 4. Make a POST request to API
         run: node cron.js
         env:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
