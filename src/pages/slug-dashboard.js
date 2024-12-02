@@ -233,7 +233,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
           if (data && data.data && data.data.length > 0) {
             if (onPageTabId === "1") {
               const resultdata = data.data[0];
-              const mergeddata = [...resultdata.bulanan, ...resultdata.harian.filter((data) => data.actioncreate === null), ...resultdata.mingguan];
+              const mergeddata = [...resultdata.bulanan, ...resultdata.harian, ...resultdata.mingguan];
               setJobData(mergeddata);
             } else {
               const resultdata = data.data;
