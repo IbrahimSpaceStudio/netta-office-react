@@ -1,4 +1,4 @@
-name: OKR NETTA v1.0.0 (cron)
+name: KPI NETTA v1.0.0 (cron)
 
 on:
   schedule:
