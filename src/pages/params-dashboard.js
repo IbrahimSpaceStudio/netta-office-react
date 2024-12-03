@@ -29,7 +29,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
-  const { typeAlias } = useAlias();
+  const { typeAlias, dayAlias } = useAlias();
 
   const pageid = parent && slug && params ? `params-${toPathname(parent)}-${toPathname(slug)}-${toPathname(params)}` : "params-dashboard";
 
@@ -444,7 +444,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
                       <TD>{data.date}</TD>
-                      <TD>{data.day}</TD>
+                      <TD>{dayAlias(data.day)}</TD>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>

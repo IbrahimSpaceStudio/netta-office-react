@@ -790,6 +790,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "target", "number")}>
                       Target
                     </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "info", "text")}>
+                      Catatan
+                    </TH>
                   </TR>
                 </THead>
                 <TBody>
@@ -813,6 +816,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
                       <TD>{data.target}</TD>
+                      <TD>{data.info}</TD>
                     </TR>
                   ))}
                 </TBody>

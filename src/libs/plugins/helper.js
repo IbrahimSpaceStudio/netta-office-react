@@ -181,5 +181,8 @@ export const useAlias = () => {
   const reportStatAlias = (type) => {
     return type === "1" ? "Selesai" : "Tidak Dikerjakan";
   };
-  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias, reportStatAlias };
+  const dayAlias = (day) => {
+    return day === "1" ? "Senin" : day === "2" ? "Selasa" : day === "3" ? "Rabu" : day === "4" ? "Kamis" : day === "5" ? "Jumat" : day === "6" ? "Sabtu" : "Minggu";
+  };
+  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias, reportStatAlias, dayAlias };
 };
