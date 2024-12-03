@@ -13,6 +13,10 @@ export const useOptions = () => {
     { value: "male", label: "Laki-laki" },
     { value: "female", label: "Perempuan" },
   ];
+  const stafftypeopt = [
+    { value: "0", label: "Pegawai Tetap" },
+    { value: "1", label: "Freelancer" },
+  ];
   const levelopt = [
     { value: "ADMIN", label: "Admin" },
     { value: "STAFF", label: "Pegawai" },
@@ -77,7 +81,7 @@ export const useOptions = () => {
     { value: "Diagnosa Sekunder", label: "Diagnosa Sekunder" },
     { value: "Diagnosa Komplikasi", label: "Diagnosa Komplikasi" },
   ];
-  return { limitopt, jobtypeopt, genderopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt };
+  return { limitopt, jobtypeopt, genderopt, stafftypeopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt };
 };
 
 export const useOdontogram = () => {
@@ -174,5 +178,8 @@ export const useAlias = () => {
   const typeAlias = (type) => {
     return type === "1" ? "Harian" : type === "2" ? "Mingguan" : "Bulanan";
   };
-  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias };
+  const reportStatAlias = (type) => {
+    return type === "1" ? "Selesai" : "Tidak Dikerjakan";
+  };
+  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias, reportStatAlias };
 };

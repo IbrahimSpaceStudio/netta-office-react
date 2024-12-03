@@ -9,9 +9,11 @@
   "dependencies": {
     "@ibrahimstudio/button": "^1.3.0",
     "@ibrahimstudio/function": "^1.0.3",
-    "@ibrahimstudio/icons": "^1.0.8",
-    "@ibrahimstudio/input": "^1.4.5",
+    "@ibrahimstudio/icons": "^1.0.10",
+    "@ibrahimstudio/input": "^1.4.7",
     "@ibrahimstudio/react": "^1.0.3",
+    "@ibrahimstudio/select": "^1.0.5",
+    "@ibrahimstudio/textarea": "^1.0.1",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",
     "axios": "^1.6.7",

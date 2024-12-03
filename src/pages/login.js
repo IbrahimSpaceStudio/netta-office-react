@@ -86,11 +86,11 @@ const LoginPage = () => {
           <div className={styles.formHead}>
             {portalType === "login" && (
               <Fragment>
-                <Input id="login-phone" isLabeled={false} placeholder="0881xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleChange} errorContent={errors.phone} isRequired />
-                <Input id="login-otp" isLabeled={false} placeholder="Masukkan password" type="password" name="otp" value={inputData.otp} onChange={handleChange} errorContent={errors.otp} isRequired />
+                <Input id="login-phone" labeled={false} placeholder="0881xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleChange} errormsg={errors.phone} required />
+                <Input id="login-otp" labeled={false} placeholder="Masukkan password" type="password" name="otp" value={inputData.otp} onChange={handleChange} errormsg={errors.otp} required />
               </Fragment>
             )}
-            {portalType === "request" && <Input id="login-phone" isLabeled={false} placeholder="0881xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleChange} errorContent={errors.phone} isRequired />}
+            {portalType === "request" && <Input id="login-phone" labeled={false} placeholder="0881xxxx" type="tel" name="phone" value={inputData.phone} onChange={handleChange} errormsg={errors.phone} required />}
           </div>
           <footer className={styles.formFoot}>
             <Button id={portalType === "login" ? "submit-login" : "submit-phone"} isFullwidth type="submit" buttonText={portalType === "login" ? "Masuk ke Dashboard" : "Request Password"} startContent={<Login />} loadingContent={<LoadingContent />} isLoading={isLoading} />
