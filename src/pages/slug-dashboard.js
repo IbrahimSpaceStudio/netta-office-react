@@ -131,6 +131,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
     let newitems = {};
     if (field === "program") {
       newitems = { idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" };
+    } else if (field === "job") {
+      newitems = { description: "", note: "", link: "" };
     }
     const updatedvalues = [...inputData[field], newitems];
     const updatederrors = errors[field] ? [...errors[field], newitems] : [{}];
@@ -836,7 +838,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         {index + 1 === inputData.job.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("job")} />}
                       </Fragment>
                     }>
-                    <Input id={`${pageid}-link-${index}`} radius="md" label="Link Konten" name="description" placeholder="Link postingan atau G-Drive" value={item.link} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.link`] ? errors[`job.${index}.link`] : ""} rows={5} required />
+                    <Input id={`${pageid}-link-${index}`} type="url" radius="md" label="Link Konten" name="link" placeholder="Link postingan atau G-Drive" value={item.link} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.link`] ? errors[`job.${index}.link`] : ""} required />
                     <Input id={`${pageid}-desc-${index}`} radius="md" label="Deskripsi Pengerjaan" name="description" placeholder="Masukkan hasil pengerjaan" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} required />
                     <Textarea id={`${pageid}-note-${index}`} radius="md" label="Catatan" name="note" placeholder="Masukkan catatan" value={item.note} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.note`] ? errors[`job.${index}.note`] : ""} rows={5} />
                   </Fieldset>
