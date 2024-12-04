@@ -443,8 +443,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
                       <TD>{typeAlias(data.type)}</TD>
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
-                      <TD>{data.date}</TD>
-                      <TD>{dayAlias(data.day)}</TD>
+                      <TD>{data.date === "" ? "-" : data.date}</TD>
+                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>

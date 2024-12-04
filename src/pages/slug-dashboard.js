@@ -38,7 +38,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
   const { limitopt, levelopt, usrstatopt, marriedstatopt, stafftypeopt } = useOptions();
-  const { typeAlias, reportStatAlias } = useAlias();
+  const { typeAlias, reportStatAlias, dayAlias } = useAlias();
 
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
   const pagetitle = slug ? `${toTitleCase(slug)}` : "Slug Dashboard";
@@ -755,7 +755,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
               </DashboardTool>
               <DashboardTool>
                 <Select id={`limit-data-${pageid}`} labeled={false} noemptyval radius="md" placeholder="Baris per Halaman" value={limit} options={limitopt} onChange={handleLimitChange} readonly={!isJobShown} />
-                {/* <Button id={`add-new-data-${pageid}`} radius="md" buttonText="Tambah" onClick={openForm} startContent={<Plus />} /> */}
               </DashboardTool>
             </DashboardToolbar>
             <TabSwitch buttons={onPageTabButton} />
@@ -769,6 +768,13 @@ const DashboardSlugPage = ({ parent, slug }) => {
                           <TH type="custom">Action</TH>
                           <TH type="custom">Timer</TH>
                         </Fragment>
+                      )}
+                    </Fragment>
+                    <Fragment>
+                      {onPageTabId === "2" && (
+                        <TH isSorted onSort={() => handleSort(jobData, setJobData, "actioncreate", "date")}>
+                          Tanggal Pengerjaan
+                        </TH>
                       )}
                     </Fragment>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
@@ -811,6 +817,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                           </Fragment>
                         )}
                       </Fragment>
+                      <Fragment>{onPageTabId === "2" && <TD>{newDate(data.actioncreate, "id")}</TD>}</Fragment>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
@@ -824,7 +831,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </TBody>
               </Table>
             </DashboardBody>
-            {/* {isJobShown && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />} */}
             {isFormOpen && (
               <SubmitForm size="md" formTitle="Report Hasil Pengerjaan" operation="add" fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addjob")} loading={isSubmitting} onClose={closeForm}>
                 {inputData.job.map((item, index) => (
@@ -870,14 +876,35 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(reportData, setReportData, "actioncreate", "date")}>
                       Tanggal Pengerjaan
                     </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "statusaction", "number")}>
+                      Status Pengerjaan
+                    </TH>
                     <TH isSorted onSort={() => handleSort(reportData, setReportData, "name", "text")}>
-                      Nama
+                      Nama PIC
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "progname", "text")}>
+                      Nama Program
                     </TH>
                     <TH isSorted onSort={() => handleSort(reportData, setReportData, "type", "number")}>
                       Tipe Program
                     </TH>
-                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "statusaction", "number")}>
-                      Status Pengerjaan
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "channel", "text")}>
+                      Channel
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "sourcename", "text")}>
+                      Sumber
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "day", "number")}>
+                      Hari
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "date", "number")}>
+                      Tanggal
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "starttime", "number")}>
+                      Jam Mulai
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportData, setReportData, "endtime", "number")}>
+                      Jam Berakhir
                     </TH>
                   </TR>
                 </THead>
@@ -885,9 +912,16 @@ const DashboardSlugPage = ({ parent, slug }) => {
                   {filteredReportData.map((data, index) => (
                     <TR key={index} isWarning={data.statusaction === "2"} onClick={data.statusaction === "1" ? () => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idaction)}`) : () => {}}>
                       <TD>{newDate(data.actioncreate, "id")}</TD>
-                      <TD>{data.name}</TD>
-                      <TD>{typeAlias(data.type)}</TD>
                       <TD>{reportStatAlias(data.statusaction)}</TD>
+                      <TD>{data.name}</TD>
+                      <TD>{data.progname}</TD>
+                      <TD>{typeAlias(data.type)}</TD>
+                      <TD>{data.channel}</TD>
+                      <TD>{data.sourcename}</TD>
+                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
+                      <TD>{data.date === "" ? "-" : data.date}</TD>
+                      <TD>{data.starttime}</TD>
+                      <TD>{data.endtime}</TD>
                     </TR>
                   ))}
                 </TBody>
