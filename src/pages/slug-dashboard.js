@@ -255,9 +255,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
             default:
               break;
           }
-          if (data && data.data && data.data.length > 0) {
+          if (data && data.data) {
             if (onPageTabId === "1") {
-              const resultdata = data.data[0];
+              const resultdata = data.data;
               const mergeddata = [...resultdata.bulanan, ...resultdata.harian, ...resultdata.mingguan];
               setJobData(mergeddata);
             } else {
