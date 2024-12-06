@@ -243,29 +243,38 @@ const DashboardSlugPage = ({ parent, slug }) => {
           switch (onPageTabId) {
             case "1":
               data = await apiRead(formData, "kpi", "viewjob");
+              if (data) {
+                const resultdata = data.data;
+                const mergeddata = [...resultdata.bulanan.flat(), ...resultdata.harian.flat(), ...resultdata.mingguan.flat()];
+                log("filtered data:", mergeddata);
+                setJobData(mergeddata);
+              } else {
+                setJobData([]);
+              }
               break;
             case "2":
               addtFormData.append("data", JSON.stringify({ secret, status: "1" }));
               data = await apiRead(addtFormData, "kpi", "viewjobstatus");
+              if (data && data.data && data.data.length > 0) {
+                const resultdata = data.data;
+                setJobData(resultdata);
+              } else {
+                setJobData([]);
+              }
               break;
             case "3":
               addtFormData.append("data", JSON.stringify({ secret, status: "2" }));
               data = await apiRead(addtFormData, "kpi", "viewjobstatus");
+              if (data && data.data && data.data.length > 0) {
+                const resultdata = data.data;
+                setJobData(resultdata);
+              } else {
+                setJobData([]);
+              }
               break;
             default:
+              setJobData([]);
               break;
-          }
-          if (data && data.data) {
-            if (onPageTabId === "1") {
-              const resultdata = data.data;
-              const mergeddata = [...resultdata.bulanan, ...resultdata.harian, ...resultdata.mingguan];
-              setJobData(mergeddata);
-            } else {
-              const resultdata = data.data;
-              setJobData(resultdata);
-            }
-          } else {
-            setJobData([]);
           }
           break;
         case "HASIL KERJA":
