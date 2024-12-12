@@ -786,17 +786,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         </TH>
                       )}
                     </Fragment>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
-                      Sumber
-                    </TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "progname", "text")}>
                       Nama Program
                     </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "channel", "text")}>
-                      Channel
-                    </TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "number")}>
                       Tipe
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "day", "number")}>
+                      Hari
                     </TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "starttime", "number")}>
                       Jam Mulai
@@ -804,8 +801,17 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "endtime", "number")}>
                       Jam Berakhir
                     </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "channel", "text")}>
+                      Channel
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
+                      Sumber
+                    </TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "target", "number")}>
                       Target
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "bobot", "number")}>
+                      Bobot
                     </TH>
                     <TH isSorted onSort={() => handleSort(jobData, setJobData, "info", "text")}>
                       Catatan
@@ -827,13 +833,15 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         )}
                       </Fragment>
                       <Fragment>{onPageTabId === "2" && <TD>{newDate(data.actioncreate, "id")}</TD>}</Fragment>
-                      <TD>{data.sourcename}</TD>
                       <TD>{data.progname}</TD>
-                      <TD>{data.channel}</TD>
                       <TD>{typeAlias(data.type)}</TD>
+                      <TD>{data.day !== "" ? dayAlias(data.day) : ""}</TD>
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
+                      <TD>{data.channel}</TD>
+                      <TD>{data.sourcename}</TD>
                       <TD>{data.target}</TD>
+                      <TD>{data.bobot}</TD>
                       <TD>{data.info}</TD>
                     </TR>
                   ))}
