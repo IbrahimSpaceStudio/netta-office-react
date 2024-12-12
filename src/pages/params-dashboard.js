@@ -405,8 +405,17 @@ const DashboardParamsPage = ({ parent, slug }) => {
               <Table byNumber isEditable isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "progname", "text")}>
+                      Nama Program
+                    </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "type", "number")}>
                       Tipe
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "day", "number")}>
+                      Hari
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "date", "number")}>
+                      Tanggal
                     </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "starttime", "number")}>
                       Jam Mulai
@@ -414,20 +423,11 @@ const DashboardParamsPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "endtime", "number")}>
                       Jam Berakhir
                     </TH>
-                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "date", "number")}>
-                      Tanggal
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "day", "number")}>
-                      Hari
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "channel", "text")}>
+                      Channel
                     </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "sourcename", "text")}>
                       Sumber
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "progname", "text")}>
-                      Nama Program
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "channel", "text")}>
-                      Channel
                     </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "target", "text")}>
                       Target
@@ -440,14 +440,14 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 <TBody>
                   {programDetailData.map((data, index) => (
                     <TR key={index} onEdit={() => openEdit(data.idprogramdetail)}>
+                      <TD>{data.progname}</TD>
                       <TD>{typeAlias(data.type)}</TD>
+                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
+                      <TD>{data.date === "" ? "-" : data.date}</TD>
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
-                      <TD>{data.date === "" ? "-" : data.date}</TD>
-                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
-                      <TD>{data.sourcename}</TD>
-                      <TD>{data.progname}</TD>
                       <TD>{data.channel}</TD>
+                      <TD>{data.sourcename}</TD>
                       <TD>{data.target}</TD>
                       <TD>{data.bobot}</TD>
                     </TR>
