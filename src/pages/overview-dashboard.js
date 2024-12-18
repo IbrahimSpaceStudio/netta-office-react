@@ -167,7 +167,7 @@ const DashboardOverviewPage = () => {
     };
 
     return (
-      <Pages>
+      <Pages title="Overview - Dashboard">
         <DashboardContainer>
           <DashboardHead title="Program Calendar" />
           <DashboardToolbar>
