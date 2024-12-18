@@ -81,7 +81,13 @@ export const useOptions = () => {
     { value: "Diagnosa Sekunder", label: "Diagnosa Sekunder" },
     { value: "Diagnosa Komplikasi", label: "Diagnosa Komplikasi" },
   ];
-  return { limitopt, jobtypeopt, genderopt, stafftypeopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt };
+  const reporttypeopt = [
+    { value: "img", label: "Gambar" },
+    { value: "video", label: "Video" },
+    { value: "file", label: "File" },
+    { value: "link", label: "Link" },
+  ];
+  return { limitopt, jobtypeopt, genderopt, stafftypeopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt, reporttypeopt };
 };
 
 export const useOdontogram = () => {

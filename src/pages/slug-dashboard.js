@@ -37,7 +37,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
-  const { limitopt, levelopt, usrstatopt, marriedstatopt, stafftypeopt } = useOptions();
+  const { limitopt, levelopt, usrstatopt, marriedstatopt, stafftypeopt, reporttypeopt } = useOptions();
   const { typeAlias, reportStatAlias, dayAlias } = useAlias();
 
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
@@ -50,6 +50,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isFormFetching, setIsFormFetching] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
@@ -96,7 +97,36 @@ const DashboardSlugPage = ({ parent, slug }) => {
     setErrors({ ...errorSchema });
   };
 
+  const handleFileUpload = async (file) => {
+    const formData = new FormData();
+    setIsSubmitting(true);
+    try {
+      formData.append("data", JSON.stringify({ secret }));
+      formData.append("fileimg", file);
+      const data = await apiRead(formData, "kpi", "uploadfile");
+      if (data && data.error === false) {
+        return data.data;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      showNotifications("danger", "Gagal mengupload file. Mohon periksa koneksi internet anda dan coba lagi.");
+      console.error("Gagal mengupload file. Mohon periksa koneksi internet anda dan coba lagi.", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleImageSelect = (file) => setSelectedImage(file);
+  const handleFileSelect = async (file, index) => {
+    if (file) {
+      const link = await handleFileUpload(file);
+      const updatedJobs = [...inputData.job];
+      updatedJobs[index].link = link;
+      setInputData({ ...inputData, job: updatedJobs });
+    }
+  };
+
   const handleLimitChange = (value) => {
     setLimit(value);
     setCurrentPage(1);
@@ -410,7 +440,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
           submittedData = { secret, idpic: inputData.pic, progstatus: inputData.program_status, note: inputData.note, detail: inputData.program };
           break;
         case "JOB":
-          submittedData = { secret, idprogdetail: selectedData, type: selectedJobType, detail: inputData.job.map((item) => ({ description: item.description, note: item.note, link: item.link })) };
+          submittedData = { secret, idprogdetail: selectedData, type: selectedJobType, detail: inputData.job.map((item) => ({ description: item.description, note: item.note, link: item.link, options: item.options })) };
           break;
         default:
           break;
@@ -861,8 +891,17 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         {index + 1 === inputData.job.length && <Button id={`${pageid}-add-row`} subVariant="icon" isTooltip tooltipText="Tambah" size="sm" color="var(--color-primary)" bgColor="var(--color-primary-10)" iconContent={<Plus />} onClick={() => handleAddRow("job")} />}
                       </Fragment>
                     }>
-                    <Input id={`${pageid}-link-${index}`} type="url" radius="md" label="Link Konten" name="link" placeholder="Link postingan atau G-Drive" value={item.link} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.link`] ? errors[`job.${index}.link`] : ""} required />
-                    <Input id={`${pageid}-desc-${index}`} radius="md" label="Deskripsi Pengerjaan" name="description" placeholder="Masukkan hasil pengerjaan" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} required />
+                    <Select id={`${pageid}-type-${index}`} noemptyval radius="md" label="Tipe Laporan" placeholder="Pilih tipe" name="options" value={item.options} options={reporttypeopt} onChange={(selectedValue) => handleRowChange("job", index, { target: { name: "options", value: selectedValue } })} errormsg={errors[`job.${index}.options`] ? errors[`job.${index}.options`] : ""} required />
+                    {item.options === "link" ? (
+                      <Input id={`${pageid}-link-${index}`} type="url" radius="md" label="Link Konten" name="link" placeholder={`Masukkan link dengan https://`} value={item.link} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.link`] ? errors[`job.${index}.link`] : ""} required />
+                    ) : item.options === "img" ? (
+                      <Input id={`${pageid}-link-${index}`} type="file" accept="image/*" radius="md" label="File Gambar" name="link" placeholder="Pilih Gambar" onChange={(file) => handleFileSelect(file, index)} required />
+                    ) : item.options === "video" ? (
+                      <Input id={`${pageid}-link-${index}`} type="file" accept="video/*" radius="md" label="File Video" name="link" placeholder="Pilih Video" onChange={(file) => handleFileSelect(file, index)} required />
+                    ) : (
+                      <Input id={`${pageid}-link-${index}`} type="file" radius="md" label="File" name="link" placeholder="Pilih File" onChange={(file) => handleFileSelect(file, index)} required />
+                    )}
+                    <Textarea id={`${pageid}-desc-${index}`} radius="md" label="Deskripsi Pengerjaan" name="description" placeholder="Masukkan hasil pengerjaan" value={item.description} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.description`] ? errors[`job.${index}.description`] : ""} rows={5} required />
                     <Textarea id={`${pageid}-note-${index}`} radius="md" label="Catatan" name="note" placeholder="Masukkan catatan" value={item.note} onChange={(e) => handleRowChange("job", index, e)} errormsg={errors[`job.${index}.note`] ? errors[`job.${index}.note`] : ""} rows={5} />
                   </Fieldset>
                 ))}
