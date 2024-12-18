@@ -50,7 +50,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isFormFetching, setIsFormFetching] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [selectedData, setSelectedData] = useState(null);
@@ -1028,10 +1027,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
     fetchAdditionalData();
   }, [slug]);
 
-  if (!isLoggedin) {
-    return <Navigate to="/login" />;
-  }
-
+  if (!isLoggedin) return <Navigate to="/login" />;
   return (
     <Pages title={`${pagetitle} - Dashboard`} loading={isOptimizing}>
       <DashboardContainer>{renderContent()}</DashboardContainer>
