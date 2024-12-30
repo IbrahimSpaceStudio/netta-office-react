@@ -124,6 +124,7 @@ export const inputSchema = {
   end_time: "",
   day: "",
   type: "",
+  correction: "",
 };
 
 export const errorSchema = {
@@ -252,4 +253,5 @@ export const errorSchema = {
   end_time: "",
   day: "",
   type: "",
+  correction: "",
 };

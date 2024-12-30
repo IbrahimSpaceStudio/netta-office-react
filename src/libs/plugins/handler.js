@@ -22,6 +22,16 @@ export const useAbsence = () => {
   const [isAbsence, setIsAbsence] = useState(false);
   const [lastAbsence, setLastAbsence] = useState({});
 
+  const getCurrentDate = () => {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", year: "numeric", month: "2-digit", day: "2-digit" });
+    const formattedDateParts = formatter.formatToParts(now);
+    const year = formattedDateParts.find((part) => part.type === "year")?.value;
+    const month = formattedDateParts.find((part) => part.type === "month")?.value;
+    const day = formattedDateParts.find((part) => part.type === "day")?.value;
+    return `${year}-${month}-${day}`;
+  };
+
   const fetchAbsence = async () => {
     const formData = new FormData();
     formData.append("data", JSON.stringify({ secret }));
@@ -30,8 +40,9 @@ export const useAbsence = () => {
       if (!response.error) {
         const absence = response.data;
         if (absence && absence.length > 0) {
+          const today = getCurrentDate();
           const lastabsence = absence[absence.length - 1];
-          if (lastabsence.endtime === "00:00:00") setIsAbsence(true);
+          if (lastabsence.endtime === "00:00:00" && lastabsence.startdate === today) setIsAbsence(true);
           else setIsAbsence(false);
           setLastAbsence(lastabsence);
         } else setIsAbsence(false);

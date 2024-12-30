@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useEffect } from "react";
 import { useNavigate, Navigate, useParams } from "react-router-dom";
-import { useFormat, useContent, useDevmode } from "@ibrahimstudio/react";
+import { useContent, useDevmode } from "@ibrahimstudio/react";
 import { Button } from "@ibrahimstudio/button";
 import { Input } from "@ibrahimstudio/input";
 import { Select } from "@ibrahimstudio/select";
@@ -16,7 +16,7 @@ import { DashboardContainer, DashboardHead, DashboardToolbar, DashboardTool, Das
 import { SubmitForm } from "../components/input-controls/forms";
 import Table, { THead, TBody, TR, TH, TD } from "../components/contents/table";
 import { Arrow, Plus, NewTrash } from "../components/contents/icons";
-import Fieldset from "../components/input-controls/inputs";
+import Fieldset, { ToggleSwitch } from "../components/input-controls/inputs";
 import TabGroup from "../components/input-controls/tab-group";
 import TabSwitch from "../components/input-controls/tab-switch";
 
@@ -25,7 +25,6 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const navigate = useNavigate();
   const { toPathname, toTitleCase } = useContent();
   const { log } = useDevmode();
-  const { newDate } = useFormat();
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
@@ -37,6 +36,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const [isFetching, setIsFetching] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isDataShown, setIsDataShown] = useState(true);
+  const [isToggling, setIsToggling] = useState(false);
   const [sortOrder, setSortOrder] = useState("asc");
   const [limit, setLimit] = useState(20);
   const [selectedData, setSelectedData] = useState(null);
@@ -56,7 +56,6 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const [errors, setErrors] = useState({ ...errorSchema });
 
   const goBack = () => navigate(-1);
-
   const restoreInputState = () => {
     setInputData({ ...inputSchema });
     setErrors({ ...errorSchema });
@@ -83,15 +82,10 @@ const DashboardParamsPage = ({ parent, slug }) => {
     setInputData((prevState) => ({ ...prevState, [name]: value }));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
     if (name === "typepayment") {
-      if (value === "cash") {
-        setInputData((prevState) => ({ ...prevState, bank_code: "CASH" }));
-      } else if (value === "indodana") {
-        setInputData((prevState) => ({ ...prevState, bank_code: "INDODANA" }));
-      } else if (value === "rata") {
-        setInputData((prevState) => ({ ...prevState, bank_code: "RATA" }));
-      } else {
-        setInputData((prevState) => ({ ...prevState, bank_code: "", status: "0" }));
-      }
+      if (value === "cash") setInputData((prevState) => ({ ...prevState, bank_code: "CASH" }));
+      else if (value === "indodana") setInputData((prevState) => ({ ...prevState, bank_code: "INDODANA" }));
+      else if (value === "rata") setInputData((prevState) => ({ ...prevState, bank_code: "RATA" }));
+      else setInputData((prevState) => ({ ...prevState, bank_code: "", status: "0" }));
     }
   };
 
@@ -101,24 +95,17 @@ const DashboardParamsPage = ({ parent, slug }) => {
     const updatederrors = errors[field] ? [...errors[field]] : [];
     updatedvalues[index] = { ...updatedvalues[index], [name]: value };
     if (field === "program" && name === "date") {
-      if (value < 1 || value > 31) {
-        updatederrors[index].date = "Mohon masukkan tanggal di rentang 1 sampai 31" || "";
-      }
+      if (value < 1 || value > 31) updatederrors[index].date = "Mohon masukkan tanggal di rentang 1 sampai 31" || "";
     }
-    if (!updatederrors[index]) {
-      updatederrors[index] = {};
-    } else {
-      updatederrors[index] = { ...updatederrors[index], [name]: "" };
-    }
+    if (!updatederrors[index]) updatederrors[index] = {};
+    else updatederrors[index] = { ...updatederrors[index], [name]: "" };
     setInputData({ ...inputData, [field]: updatedvalues });
     setErrors({ ...errors, [field]: updatederrors });
   };
 
   const handleAddRow = (field) => {
     let newitems = {};
-    if (field === "program") {
-      newitems = { idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" };
-    }
+    if (field === "program") newitems = { idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" };
     const updatedvalues = [...inputData[field], newitems];
     const updatederrors = errors[field] ? [...errors[field], newitems] : [{}];
     setInputData({ ...inputData, [field]: updatedvalues });
@@ -139,15 +126,10 @@ const DashboardParamsPage = ({ parent, slug }) => {
     const compare = (a, b) => {
       const valueA = getNestedValue(a, params);
       const valueB = getNestedValue(b, params);
-      if (type === "date") {
-        return new Date(valueA) - new Date(valueB);
-      } else if (type === "number") {
-        return valueA - valueB;
-      } else if (type === "text") {
-        return valueA.localeCompare(valueB);
-      } else {
-        return 0;
-      }
+      if (type === "date") return new Date(valueA) - new Date(valueB);
+      else if (type === "number") return valueA - valueB;
+      else if (type === "text") return valueA.localeCompare(valueB);
+      else return 0;
     };
     if (!sortOrder || sortOrder === "desc") {
       newData.sort(compare);
@@ -157,6 +139,26 @@ const DashboardParamsPage = ({ parent, slug }) => {
       setSortOrder("desc");
     }
     setData(newData);
+  };
+
+  const handleToggle = async (e, params, status, endpoint, scope = "kpi") => {
+    e.preventDefault();
+    const successmsg = "Selamat! Perubahan anda berhasil disimpan.";
+    const errormsg = "Terjadi kesalahan saat menyimpan perubahan. Mohon periksa koneksi internet anda dan coba lagi.";
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ secret, status }));
+    formData.append("idedit", params);
+    setIsToggling(true);
+    try {
+      await apiCrud(formData, scope, endpoint);
+      showNotifications("success", successmsg);
+      await fetchData();
+    } catch (error) {
+      showNotifications("danger", errormsg);
+      console.error(errormsg, error);
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   const fetchData = async () => {
@@ -224,11 +226,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
     setIsOptimizing(true);
     try {
       const emplydata = await apiRead(formData, "kpi", "searchemployee");
-      if (emplydata && emplydata.data && emplydata.data.length > 0) {
-        setAllEmplyData(emplydata.data);
-      } else {
-        setAllEmplyData([]);
-      }
+      if (emplydata && emplydata.data && emplydata.data.length > 0) setAllEmplyData(emplydata.data);
+      else setAllEmplyData([]);
     } catch (error) {
       showNotifications("danger", errormsg);
       console.error(errormsg, error);
@@ -240,11 +239,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const switchData = async (params) => {
     setSelectedData(params);
     const currentData = (arraydata, identifier) => {
-      if (typeof identifier === "string") {
-        return arraydata.find((item) => getNestedValue(item, identifier) === params);
-      } else {
-        return arraydata.find((item) => item[identifier] === params);
-      }
+      if (typeof identifier === "string") return arraydata.find((item) => getNestedValue(item, identifier) === params);
+      else return arraydata.find((item) => item[identifier] === params);
     };
     const errormsg = `Terjadi kesalahan saat memuat data. Mohon periksa koneksi internet anda dan coba lagi.`;
     let switchedData;
@@ -276,19 +272,15 @@ const DashboardParamsPage = ({ parent, slug }) => {
     switch (slug) {
       case "PROGRAM":
         if (selectedMode === "update") {
-          if (jobType === "3") {
-            requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time", "date"];
-          } else {
-            requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time"];
-          }
+          if (jobType === "3") requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time", "date"];
+          else requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time"];
         } else {
-          if (jobType === "3") {
-            requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
-          } else {
-            requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
-          }
+          if (jobType === "3") requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
+          else requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
         }
         break;
+      case "HASIL KERJA":
+        requiredFields = "correction";
       default:
         requiredFields = [];
         break;
@@ -303,25 +295,24 @@ const DashboardParamsPage = ({ parent, slug }) => {
     const successmsg = action === "update" ? `Selamat! Perubahan anda pada ${toTitleCase(slug)} berhasil disimpan.` : `Selamat! Data baru berhasil ditambahkan pada ${toTitleCase(slug)}.`;
     const errormsg = action === "update" ? "Terjadi kesalahan saat menyimpan perubahan. Mohon periksa koneksi internet anda dan coba lagi." : "Terjadi kesalahan saat menambahkan data. Mohon periksa koneksi internet anda dan coba lagi.";
     const confirm = window.confirm(confirmmsg);
-    if (!confirm) {
-      return;
-    }
+    if (!confirm) return;
     setIsSubmitting(true);
     try {
       let submittedData;
       switch (slug) {
         case "PROGRAM":
-          if (selectedMode === "update") {
-            submittedData = { secret, idprogdetail: selectedData, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType, info: inputData.desc };
-          } else {
-            submittedData = { secret, idpic: programDetailData[0].idpic, idprogram: params, detail: inputData.program };
-          }
+          if (selectedMode === "update") submittedData = { secret, idprogdetail: selectedData, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType, info: inputData.desc };
+          else submittedData = { secret, idpic: programDetailData[0].idpic, idprogram: params, detail: inputData.program };
+          break;
+        case "HASIL KERJA":
+          submittedData = { secret, correction: inputData.correction };
           break;
         default:
           break;
       }
       const formData = new FormData();
       formData.append("data", JSON.stringify(submittedData));
+      if (slug === "HASIL KERJA") formData.append("idedit", params);
       await apiCrud(formData, scope, endpoint);
       showNotifications("success", successmsg);
       log("submitted data:", submittedData);
@@ -405,6 +396,9 @@ const DashboardParamsPage = ({ parent, slug }) => {
               <Table byNumber isEditable isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH type="custom" isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "status", "number")}>
+                      Status
+                    </TH>
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "progname", "text")}>
                       Nama Program
                     </TH>
@@ -440,6 +434,9 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 <TBody>
                   {programDetailData.map((data, index) => (
                     <TR key={index} onEdit={() => openEdit(data.idprogramdetail)}>
+                      <TD type="custom">
+                        <ToggleSwitch id={data.idprogramdetail} isChecked={data.status === "0"} onToggle={(e) => handleToggle(e, data.idprogramdetail, data.status === "0" ? "1" : "0", "statusprogdetail")} isLoading={isToggling} />
+                      </TD>
                       <TD>{data.progname}</TD>
                       <TD>{typeAlias(data.type)}</TD>
                       <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
@@ -591,9 +588,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
           <Fragment>
             <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
             <DashboardToolbar>
-              <DashboardTool>
-                <Button id={`${pageid}-back-previous-page`} buttonText="Kembali" radius="md" onClick={goBack} startContent={<Arrow direction="left" />} />
-              </DashboardTool>
+              <Button id={`${pageid}-back-previous-page`} buttonText="Kembali" radius="md" onClick={goBack} startContent={<Arrow direction="left" />} />
+              <Button id={`${pageid}-correction`} buttonText="Koreksi" radius="md" onClick={openForm} startContent={<Plus />} />
             </DashboardToolbar>
             <DashboardBody>
               <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
@@ -625,6 +621,11 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 </TBody>
               </Table>
             </DashboardBody>
+            {isFormOpen && (
+              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Koreksi" : "Tambah Koreksi"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addcorection")} loading={isSubmitting} onClose={closeForm}>
+                <Textarea id={`${pageid}-correction`} radius="md" label="Koreksi" placeholder="Masukkan koreksi" name="correction" value={inputData.correction} onChange={handleInputChange} errormsg={errors.correction} rows={5} />
+              </SubmitForm>
+            )}
           </Fragment>
         );
       default:
@@ -637,10 +638,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
     fetchAdditionalData();
   }, [slug, params, currentPage, limit]);
 
-  if (!isLoggedin) {
-    return <Navigate to="/login" />;
-  }
-
+  if (!isLoggedin) return <Navigate to="/login" />;
   return (
     <Pages title={`${pageTitle} - Dashboard`} loading={isOptimizing}>
       <DashboardContainer>{renderContent()}</DashboardContainer>
