@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useApi } from "../apis/office";
+import { useAuth } from "../securities/auth";
 import { getNestedValue } from "./controller";
 
 export const useSearch = (data, fields, minLengthToShow = 1) => {
@@ -12,4 +14,65 @@ export const useSearch = (data, fields, minLengthToShow = 1) => {
   }, [filteredData, minLengthToShow]);
 
   return { searchTerm, handleSearch, filteredData, isDataShown };
+};
+
+export const useAbsence = () => {
+  const { apiRead, apiCrud } = useApi();
+  const { secret } = useAuth();
+  const [isAbsence, setIsAbsence] = useState(false);
+  const [lastAbsence, setLastAbsence] = useState({});
+
+  const fetchAbsence = async () => {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ secret }));
+    try {
+      const response = await apiRead(formData, "kpi", "viewabsence");
+      if (!response.error) {
+        const absence = response.data;
+        if (absence && absence.length > 0) {
+          const lastabsence = absence[absence.length - 1];
+          if (lastabsence.endtime === "00:00:00") setIsAbsence(true);
+          else setIsAbsence(false);
+          setLastAbsence(lastabsence);
+        } else setIsAbsence(false);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const absenceIn = async () => {
+    const formData = new FormData();
+    const confirm = window.confirm(`Anda akan absen masuk pada ${new Date().toLocaleString()}`);
+    formData.append("data", JSON.stringify({ secret }));
+    if (!confirm) return;
+    try {
+      const response = await apiCrud(formData, "kpi", "addabsence");
+      if (!response.error) setIsAbsence(true);
+      else console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const absenceOut = async () => {
+    const formData = new FormData();
+    const confirm = window.confirm(`Anda akan absen keluar pada ${new Date().toLocaleString()}`);
+    formData.append("data", JSON.stringify({ secret }));
+    formData.append("idedit", lastAbsence.idabsence);
+    if (!confirm) return;
+    try {
+      const response = await apiCrud(formData, "kpi", "addabsence");
+      if (!response.error) setIsAbsence(false);
+      else console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAbsence();
+  }, [isAbsence]);
+
+  return { isAbsence, absenceIn, absenceOut };
 };

@@ -66,6 +66,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [selectedJobType, setSelectedJobType] = useState("");
   const [reportData, setReportData] = useState([]);
   const [selectedEmply, setSelectedEmply] = useState("all");
+  const [reportTeamData, setReportTeamData] = useState([]);
+  const [absenceData, setAbsenceData] = useState([]);
 
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
@@ -103,11 +105,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
       formData.append("data", JSON.stringify({ secret }));
       formData.append("fileimg", file);
       const data = await apiRead(formData, "kpi", "uploadfile");
-      if (data && data.error === false) {
-        return data.data;
-      } else {
-        return null;
-      }
+      if (data && data.error === false) return data.data;
+      else return null;
     } catch (error) {
       showNotifications("danger", "Gagal mengupload file. Mohon periksa koneksi internet anda dan coba lagi.");
       console.error("Gagal mengupload file. Mohon periksa koneksi internet anda dan coba lagi.", error);
@@ -143,26 +142,18 @@ const DashboardSlugPage = ({ parent, slug }) => {
     const updatederrors = errors[field] ? [...errors[field]] : [];
     updatedvalues[index] = { ...updatedvalues[index], [name]: value };
     if (field === "program" && name === "date") {
-      if (value < 1 || value > 31) {
-        updatederrors[index].date = "Mohon masukkan tanggal di rentang 1 sampai 31" || "";
-      }
+      if (value < 1 || value > 31) updatederrors[index].date = "Mohon masukkan tanggal di rentang 1 sampai 31" || "";
     }
-    if (!updatederrors[index]) {
-      updatederrors[index] = {};
-    } else {
-      updatederrors[index] = { ...updatederrors[index], [name]: "" };
-    }
+    if (!updatederrors[index]) updatederrors[index] = {};
+    else updatederrors[index] = { ...updatederrors[index], [name]: "" };
     setInputData({ ...inputData, [field]: updatedvalues });
     setErrors({ ...errors, [field]: updatederrors });
   };
 
   const handleAddRow = (field) => {
     let newitems = {};
-    if (field === "program") {
-      newitems = { idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" };
-    } else if (field === "job") {
-      newitems = { description: "", note: "", link: "" };
-    }
+    if (field === "program") newitems = { idsource: "", sourcename: "", progname: "", channel: "", target: "", bobot: "" };
+    else if (field === "job") newitems = { description: "", note: "", link: "" };
     const updatedvalues = [...inputData[field], newitems];
     const updatederrors = errors[field] ? [...errors[field], newitems] : [{}];
     setInputData({ ...inputData, [field]: updatedvalues });
@@ -183,15 +174,10 @@ const DashboardSlugPage = ({ parent, slug }) => {
     const compare = (a, b) => {
       const valueA = getNestedValue(a, params);
       const valueB = getNestedValue(b, params);
-      if (type === "date") {
-        return new Date(valueA) - new Date(valueB);
-      } else if (type === "number") {
-        return valueA - valueB;
-      } else if (type === "text") {
-        return valueA.localeCompare(valueB);
-      } else {
-        return 0;
-      }
+      if (type === "date") return new Date(valueA) - new Date(valueB);
+      else if (type === "number") return valueA - valueB;
+      else if (type === "text") return valueA.localeCompare(valueB);
+      else return 0;
     };
     if (!sortOrder || sortOrder === "desc") {
       newData.sort(compare);
@@ -277,9 +263,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 const mergeddata = [...resultdata.bulanan.flat(), ...resultdata.harian.flat(), ...resultdata.mingguan.flat()];
                 log("filtered data:", mergeddata);
                 setJobData(mergeddata);
-              } else {
-                setJobData([]);
-              }
+              } else setJobData([]);
               break;
             case "2":
               addtFormData.append("data", JSON.stringify({ secret, status: "1" }));
@@ -287,9 +271,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
               if (data && data.data && data.data.length > 0) {
                 const resultdata = data.data;
                 setJobData(resultdata);
-              } else {
-                setJobData([]);
-              }
+              } else setJobData([]);
               break;
             case "3":
               addtFormData.append("data", JSON.stringify({ secret, status: "2" }));
@@ -297,9 +279,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
               if (data && data.data && data.data.length > 0) {
                 const resultdata = data.data;
                 setJobData(resultdata);
-              } else {
-                setJobData([]);
-              }
+              } else setJobData([]);
               break;
             default:
               setJobData([]);
@@ -316,6 +296,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
             setReportData([]);
             setTotalPages(0);
           }
+          break;
+        case "PEKERJAAN TIM":
+          data = await apiRead(formData, "kpi", "viewreportunfinish");
+          if (data) {
+            const resultdata = data.data;
+            const mergeddata = [...resultdata.bulanan.flat(), ...resultdata.harian.flat(), ...resultdata.mingguan.flat()];
+            setReportTeamData(mergeddata);
+          } else setReportTeamData([]);
           break;
         default:
           setTotalPages(0);
@@ -336,11 +324,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
     setIsOptimizing(true);
     try {
       const emplydata = await apiRead(formData, "kpi", "searchemployee");
-      if (emplydata && emplydata.data && emplydata.data.length > 0) {
-        setAllEmplyData(emplydata.data);
-      } else {
-        setAllEmplyData([]);
-      }
+      setAllEmplyData(emplydata && emplydata.data && emplydata.data.length > 0 ? emplydata.data : []);
     } catch (error) {
       showNotifications("danger", errormsg);
       console.error(errormsg, error);
@@ -352,11 +336,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const switchData = async (params) => {
     setSelectedData(params);
     const currentData = (arraydata, identifier) => {
-      if (typeof identifier === "string") {
-        return arraydata.find((item) => getNestedValue(item, identifier) === params);
-      } else {
-        return arraydata.find((item) => item[identifier] === params);
-      }
+      if (typeof identifier === "string") return arraydata.find((item) => getNestedValue(item, identifier) === params);
+      else return arraydata.find((item) => item[identifier] === params);
     };
     const errormsg = `Terjadi kesalahan saat memuat data. Mohon periksa koneksi internet anda dan coba lagi.`;
     const formData = new FormData();
@@ -376,11 +357,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
           formData.append("data", JSON.stringify({ secret, idprogram: params }));
           data = await apiRead(formData, "kpi", "viewprogramdetail");
           const programdetaildata = data.data;
-          if (data && programdetaildata && programdetaildata.length > 0) {
-            setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: programdetaildata.map((item) => ({ idsource: item.idsource, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, starttime: item.starttime, endtime: item.endtime, day: item.day, date: item.date, type: item.type })) });
-          } else {
-            setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", starttime: "", endtime: "", day: "", date: 1, type: "" }] });
-          }
+          if (data && programdetaildata && programdetaildata.length > 0) setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: programdetaildata.map((item) => ({ idsource: item.idsource, progname: item.progname, channel: item.channel, target: item.target, bobot: item.bobot, starttime: item.starttime, endtime: item.endtime, day: item.day, date: item.date, type: item.type })) });
+          else setInputData({ pic: switchedData.idpic, program_status: switchedData.progstatus, note: switchedData.note, program: [{ idsource: "", progname: "", channel: "", target: "", bobot: "", starttime: "", endtime: "", day: "", date: 1, type: "" }] });
           break;
         default:
           setSelectedData(null);
@@ -402,11 +380,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
         requiredFields = ["name", "phone", "email", "address", "position", "level", "division", "married_status", "nik", "npwp", "bank_name", "bank_holder", "bank_number", "type"];
         break;
       case "PROGRAM":
-        if (inputData.type === "3") {
-          requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
-        } else {
-          requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
-        }
+        if (inputData.type === "3") requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
+        else requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
         break;
       case "JOB":
         requiredFields = ["job.link", "job.description"];
@@ -425,9 +400,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
     const successmsg = action === "update" ? `Selamat! Perubahan anda pada ${toTitleCase(slug)} berhasil disimpan.` : `Selamat! Data baru berhasil ditambahkan pada ${toTitleCase(slug)}.`;
     const errormsg = action === "update" ? "Terjadi kesalahan saat menyimpan perubahan. Mohon periksa koneksi internet anda dan coba lagi." : "Terjadi kesalahan saat menambahkan data. Mohon periksa koneksi internet anda dan coba lagi.";
     const confirm = window.confirm(confirmmsg);
-    if (!confirm) {
-      return;
-    }
+    if (!confirm) return;
     setIsSubmitting(true);
     try {
       let submittedData;
@@ -446,20 +419,13 @@ const DashboardSlugPage = ({ parent, slug }) => {
       }
       const formData = new FormData();
       formData.append("data", JSON.stringify(submittedData));
-      if (slug === "PEGAWAI") {
-        formData.append("fileimg", selectedImage);
-      }
-      if (action === "update") {
-        formData.append("idedit", selectedData);
-      }
+      if (slug === "PEGAWAI") formData.append("fileimg", selectedImage);
+      if (action === "update") formData.append("idedit", selectedData);
       await apiCrud(formData, scope, endpoint);
       showNotifications("success", successmsg);
       log("submitted data:", submittedData);
-      if (action === "add") {
-        closeForm();
-      } else {
-        closeEdit();
-      }
+      if (action === "add") closeForm();
+      else closeEdit();
       await fetchData();
       await fetchAdditionalData();
     } catch (error) {
@@ -475,9 +441,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
     const successmsg = `Selamat! Data terpilih dari ${toTitleCase(slug)} berhasil dihapus.`;
     const errormsg = "Terjadi kesalahan saat menghapus data. Mohon periksa koneksi internet anda dan coba lagi.";
     const confirm = window.confirm(confirmmsg);
-    if (!confirm) {
-      return;
-    }
+    if (!confirm) return;
     const formData = new FormData();
     formData.append("data", JSON.stringify({ secret }));
     formData.append("iddel", params);
@@ -520,6 +484,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { searchTerm: programSearch, handleSearch: handleProgramSearch, filteredData: filteredProgramData, isDataShown: isProgramShown } = useSearch(programData, ["progname", "channel", "pic", "target", "bobot", "note"]);
   const { searchTerm: jobSearch, handleSearch: handleJobSearch, filteredData: filteredJobData, isDataShown: isJobShown } = useSearch(jobData, ["sourcename"]);
   const { searchTerm: reportSearch, handleSearch: handleReportSearch, filteredData: filteredReportData, isDataShown: isReportShown } = useSearch(reportData, ["name"]);
+  const { searchTerm: reportTeamSearch, handleSearch: handleReportTeamSearch, filteredData: filteredReportTeamData, isDataShown: isReportTeamShown } = useSearch(reportTeamData, ["name"]);
 
   const renderContent = () => {
     switch (slug) {
@@ -781,7 +746,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
         const onPageTabButton = [
           { label: "Proses Hari Ini", onClick: () => handleOnpageTabChange("1"), active: onPageTabId === "1" },
           { label: "Selesai", onClick: () => handleOnpageTabChange("2"), active: onPageTabId === "2" },
-          { label: "Tidak Di Kerjakan", onClick: () => handleOnpageTabChange("3"), active: onPageTabId === "3" },
+          { label: "Koreksi", onClick: () => handleOnpageTabChange("3"), active: onPageTabId === "3" },
         ];
 
         return (
@@ -992,6 +957,78 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </Fieldset>
               </SubmitForm>
             )}
+          </Fragment>
+        );
+      case "PEKERJAAN TIM":
+        return (
+          <Fragment>
+            <DashboardHead title={pagetitle} />
+            <DashboardToolbar>
+              <DashboardTool>
+                <Input id={`search-data-${pageid}`} radius="md" labeled={false} placeholder="Cari data ..." type="text" value={reportTeamSearch} onChange={(e) => handleReportTeamSearch(e.target.value)} leadingicon={<Search />} />
+              </DashboardTool>
+              <DashboardTool>
+                <Select id={`limit-data-${pageid}`} labeled={false} noemptyval radius="md" placeholder="Baris per Halaman" value={limit} options={limitopt} onChange={handleLimitChange} readonly={!isReportTeamShown} />
+              </DashboardTool>
+            </DashboardToolbar>
+            <DashboardBody>
+              <Table byNumber isNoData={!isReportTeamShown} isLoading={isFetching}>
+                <THead>
+                  <TR>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "name", "text")}>
+                      Nama
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "progname", "text")}>
+                      Nama Program
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "type", "number")}>
+                      Tipe
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "day", "number")}>
+                      Hari
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "starttime", "number")}>
+                      Jam Mulai
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "endtime", "number")}>
+                      Jam Berakhir
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "channel", "text")}>
+                      Channel
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "sourcename", "text")}>
+                      Sumber
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "target", "number")}>
+                      Target
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "bobot", "number")}>
+                      Bobot
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "info", "text")}>
+                      Catatan
+                    </TH>
+                  </TR>
+                </THead>
+                <TBody>
+                  {filteredReportTeamData.map((data, index) => (
+                    <TR key={index}>
+                      <TD>{data.name}</TD>
+                      <TD>{data.progname}</TD>
+                      <TD>{typeAlias(data.type)}</TD>
+                      <TD>{data.day !== "" ? dayAlias(data.day) : ""}</TD>
+                      <TD>{data.starttime}</TD>
+                      <TD>{data.endtime}</TD>
+                      <TD>{data.channel}</TD>
+                      <TD>{data.sourcename}</TD>
+                      <TD>{data.target}</TD>
+                      <TD>{data.bobot}</TD>
+                      <TD>{data.info}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </DashboardBody>
           </Fragment>
         );
       default:

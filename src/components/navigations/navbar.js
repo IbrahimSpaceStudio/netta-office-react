@@ -4,6 +4,7 @@ import { useContent, useWindow } from "@ibrahimstudio/react";
 import { Button } from "@ibrahimstudio/button";
 import { useAuth } from "../../libs/securities/auth";
 import { useApi } from "../../libs/apis/office";
+import { useAbsence } from "../../libs/plugins/handler";
 import { useNotifications } from "../feedbacks/context/notifications-context";
 import { TabButton, DropDownButton } from "../input-controls/buttons";
 import { Power, Close, Burger } from "../contents/icons";
@@ -74,6 +75,7 @@ const Navbar = () => {
   const { width } = useWindow();
   const { secret, level, logout } = useAuth();
   const { apiRead } = useApi();
+  const { isAbsence, absenceIn, absenceOut } = useAbsence();
   const { showNotifications } = useNotifications();
   const [tabMenus, setTabMenus] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,6 +88,11 @@ const Navbar = () => {
     navigate(url);
   };
 
+  const absenceClick = () => {
+    if (isAbsence) absenceOut();
+    else absenceIn();
+  };
+
   const fetchData = async () => {
     const errormsg = `Terjadi kesalahan saat memuat Dashboard. Mohon periksa koneksi internet anda dan coba lagi.`;
     const menuFormData = new FormData();
@@ -93,11 +100,8 @@ const Navbar = () => {
       menuFormData.append("data", JSON.stringify({ secret, level }));
       const menudata = await apiRead(menuFormData, "kpi", "viewmenu");
       const menuparams = menudata.data;
-      if (menuparams && menuparams.length > 0) {
-        setTabMenus(menuparams);
-      } else {
-        setTabMenus([]);
-      }
+      if (menuparams && menuparams.length > 0) setTabMenus(menuparams);
+      else setTabMenus([]);
     } catch (error) {
       showNotifications("danger", errormsg);
       console.error(errormsg, error);
@@ -124,7 +128,8 @@ const Navbar = () => {
         </div>
       </section>
       <section className={styles.navToggle}>
-        <Button id="logout" size="sm" radius="md" buttonText="Keluar" onClick={logoutClick} startContent={<Power />} />
+        {level === "STAFF" && <Button id={isAbsence ? "absence-out" : "absence-in"} size="sm" radius="md" buttonText={isAbsence ? "Absen Keluar" : "Absen Masuk"} onClick={absenceClick} />}
+        <Button id="logout" size="sm" radius="md" bgColor="var(--color-red-20)" color="var(--color-red)" buttonText="Keluar" onClick={logoutClick} startContent={<Power />} />
         {width < 880 && <Button id="menu-drawer" size="sm" variant="hollow" subVariant="icon" radius="md" iconContent={<Burger color="var(--color-secondary)" />} onClick={() => setMenuOpen(true)} />}
       </section>
       {menuOpen && <MobileMenu tabMenus={tabMenus} onClose={() => setMenuOpen(false)} />}
