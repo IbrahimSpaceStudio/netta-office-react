@@ -42,7 +42,7 @@ export const useAbsence = () => {
         if (absence && absence.length > 0) {
           const today = getCurrentDate();
           const lastabsence = absence[absence.length - 1];
-          if (lastabsence.endtime === "00:00:00" && lastabsence.startdate === today) setIsAbsence(true);
+          if (lastabsence.endtime === null && lastabsence.startdate === today) setIsAbsence(true);
           else setIsAbsence(false);
           setLastAbsence(lastabsence);
         } else setIsAbsence(false);

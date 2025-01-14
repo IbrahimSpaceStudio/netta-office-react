@@ -80,8 +80,8 @@ const DashboardOverviewPage = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isLoggedin) fetchData();
+  }, [isLoggedin]);
 
   if (!isLoggedin) return <Navigate to="/login" />;
   if (level === "STAFF") {
