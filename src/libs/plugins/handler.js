@@ -18,7 +18,7 @@ export const useSearch = (data, fields, minLengthToShow = 1) => {
 
 export const useAbsence = () => {
   const { apiRead, apiCrud } = useApi();
-  const { secret } = useAuth();
+  const { secret, level } = useAuth();
   const [isAbsence, setIsAbsence] = useState(false);
   const [lastAbsence, setLastAbsence] = useState({});
 
@@ -82,8 +82,8 @@ export const useAbsence = () => {
   };
 
   useEffect(() => {
-    fetchAbsence();
-  }, [isAbsence]);
+    if (level === "STAFF") fetchAbsence();
+  }, [isAbsence, level]);
 
   return { isAbsence, absenceIn, absenceOut };
 };

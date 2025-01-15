@@ -72,6 +72,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
 
+  const allEmplyObj = [{ idemployee: "all", employeecreate: "0000-00-00 00:00:00", employeeupdate: "0000-00-00 00:00:00", name: "Semua Pegawai", phone: "", hp: "", otp: "", address: "", position: "", division: "", merid: "", identity: "", image: "", status: "", secret: "", email: "", akses: "", noktp: "", npwp: "", bankname: "", rekname: "", reknumber: "", type: "", imgktp: "" }];
+  const mergedEmplyData = [...allEmplyObj, ...allEmplyData];
+
   const formatDate = (date) => {
     return date.toISOString().split("T")[0];
   };
@@ -302,8 +305,15 @@ const DashboardSlugPage = ({ parent, slug }) => {
           if (data) {
             const resultdata = data.data;
             const mergeddata = [...resultdata.bulanan.flat(), ...resultdata.harian.flat(), ...resultdata.mingguan.flat()];
+            log("filtered data:", mergeddata);
             setReportTeamData(mergeddata);
           } else setReportTeamData([]);
+          break;
+        case "ABSENSI":
+          addtFormData.append("data", JSON.stringify({ secret, idemployee: selectedEmply, startdate: startDate, enddate: endDate }));
+          data = await apiRead(addtFormData, "kpi", "viewabsencereport");
+          if (data && data.data && data.data.length > 0) setAbsenceData(data.data);
+          else setAbsenceData([]);
           break;
         default:
           setTotalPages(0);
@@ -480,11 +490,12 @@ const DashboardSlugPage = ({ parent, slug }) => {
     }
   };
 
-  const { searchTerm: userSearch, handleSearch: handleUserSearch, filteredData: filteredUserData, isDataShown: isUserShown } = useSearch(emplyData, ["name", "phone", "position", "akses"]);
-  const { searchTerm: programSearch, handleSearch: handleProgramSearch, filteredData: filteredProgramData, isDataShown: isProgramShown } = useSearch(programData, ["progname", "channel", "pic", "target", "bobot", "note"]);
-  const { searchTerm: jobSearch, handleSearch: handleJobSearch, filteredData: filteredJobData, isDataShown: isJobShown } = useSearch(jobData, ["sourcename"]);
-  const { searchTerm: reportSearch, handleSearch: handleReportSearch, filteredData: filteredReportData, isDataShown: isReportShown } = useSearch(reportData, ["name"]);
-  const { searchTerm: reportTeamSearch, handleSearch: handleReportTeamSearch, filteredData: filteredReportTeamData, isDataShown: isReportTeamShown } = useSearch(reportTeamData, ["name"]);
+  const { searchTerm: userSearch, handleSearch: handleUserSearch, filteredData: filteredUserData, isDataShown: isUserShown } = useSearch(emplyData, ["name", "phone", "hp", "address", "position", "division", "merid", "status", "email", "akses", "noktp", "npwp", "type"]);
+  const { searchTerm: programSearch, handleSearch: handleProgramSearch, filteredData: filteredProgramData, isDataShown: isProgramShown } = useSearch(programData, ["picname"]);
+  const { searchTerm: jobSearch, handleSearch: handleJobSearch, filteredData: filteredJobData, isDataShown: isJobShown } = useSearch(jobData, ["sourcename", "progname", "channel"]);
+  const { searchTerm: reportSearch, handleSearch: handleReportSearch, filteredData: filteredReportData, isDataShown: isReportShown } = useSearch(reportData, ["title", "name", "progname", "channel", "sourcename"]);
+  const { searchTerm: reportTeamSearch, handleSearch: handleReportTeamSearch, filteredData: filteredReportTeamData, isDataShown: isReportTeamShown } = useSearch(reportTeamData, ["sourcename", "progname", "channel"]);
+  const { searchTerm: absenceSearch, handleSearch: handleAbsenceSearch, filteredData: filteredAbsenceData, isDataShown: isAbsenceShown } = useSearch(absenceData, ["name"]);
 
   const renderContent = () => {
     switch (slug) {
@@ -508,9 +519,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH type="custom" isSorted onSort={() => handleSort(emplyData, setEmplyData, "status", "number")}>
                       Status
                     </TH>
-                    <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "employeecreate", "date")}>
-                      Tanggal Dibuat
-                    </TH>
                     <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "name", "text")}>
                       Nama
                     </TH>
@@ -532,6 +540,12 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "akses", "text")}>
                       Akses Level
                     </TH>
+                    <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "employeecreate", "date")}>
+                      Tanggal Dibuat
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(emplyData, setEmplyData, "employeeupdate", "date")}>
+                      Tanggal Diupdate
+                    </TH>
                   </TR>
                 </THead>
                 <TBody>
@@ -540,7 +554,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <TD type="custom">
                         <ToggleSwitch id={data.idemployee} isChecked={data.status === "0"} onToggle={(e) => handleToggle(e, data.idemployee, data.status === "0" ? "1" : "0", "cudemployee")} isLoading={isToggling} />
                       </TD>
-                      <TD>{newDate(data.employeecreate, "id")}</TD>
                       <TD>{data.name}</TD>
                       <TD>{data.phone}</TD>
                       <TD>{data.email}</TD>
@@ -548,6 +561,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <TD>{data.position}</TD>
                       <TD>{data.division}</TD>
                       <TD>{data.akses}</TD>
+                      <TD>{newDate(data.employeecreate, "id")}</TD>
+                      <TD>{data.employeeupdate === "0000-00-00 00:00:00" ? "-" : newDate(data.employeeupdate, "id")}</TD>
                     </TR>
                   ))}
                 </TBody>
@@ -575,7 +590,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 <Fieldset>
                   <Input id={`${pageid}-nik`} radius="md" label="NIK" placeholder="327xxxx" type="number" name="nik" value={inputData.nik} onChange={handleInputChange} errormsg={errors.nik} required />
                   <Select id={`${pageid}-married-status`} noemptyval radius="md" label="Status Pernikahan" placeholder="Pilih status" name="married_status" value={inputData.married_status} options={marriedstatopt} onChange={(selectedValue) => handleInputChange({ target: { name: "married_status", value: selectedValue } })} errormsg={errors.married_status} required />
-                  <Input id={`${pageid}-scanid`} radius="md" label="Scan KTP" type="file" accept="image/*" name="image" initial={inputData.image} onChange={handleImageSelect} />
+                  <Input id={`${pageid}-scanid`} radius="md" label="Scan KTP" type="file" accept="image/*" name="image" initial={inputData.image} placeholder="Upload KTP" onChange={handleImageSelect} />
                 </Fieldset>
                 <Fieldset>
                   <Input id={`${pageid}-bank-name`} radius="md" label="Nama Bank" placeholder="Bank BNI" type="text" name="bank_name" value={inputData.bank_name} onChange={handleInputChange} errormsg={errors.bank_name} required />
@@ -668,10 +683,10 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       </TD>
                       <TD>{newDate(data.programcreate, "id")}</TD>
                       <TD>{data.picname}</TD>
-                      <TD>{data.totaltarget}</TD>
-                      <TD>{data.totalcapaian}</TD>
-                      <TD>{data.totalbobot}</TD>
-                      <TD>{data.totalskor}</TD>
+                      <TD>{data.totaltarget === "" ? "-" : data.totaltarget}</TD>
+                      <TD>{data.totalcapaian === "" ? "-" : data.totalcapaian}</TD>
+                      <TD>{data.totalbobot === "" ? "-" : data.totalbobot}</TD>
+                      <TD>{data.totalskor === "" ? "-" : data.totalskor}</TD>
                     </TR>
                   ))}
                 </TBody>
@@ -829,14 +844,14 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <Fragment>{onPageTabId === "2" && <TD>{newDate(data.actioncreate, "id")}</TD>}</Fragment>
                       <TD>{data.progname}</TD>
                       <TD>{typeAlias(data.type)}</TD>
-                      <TD>{data.day !== "" ? dayAlias(data.day) : ""}</TD>
+                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
                       <TD>{data.channel}</TD>
                       <TD>{data.sourcename}</TD>
                       <TD>{data.target}</TD>
                       <TD>{data.bobot}</TD>
-                      <TD>{data.info}</TD>
+                      <TD>{data.info === "" ? "-" : data.info}</TD>
                     </TR>
                   ))}
                 </TBody>
@@ -874,9 +889,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "HASIL KERJA":
-        const allEmplyObj = [{ idemployee: "all", employeecreate: "0000-00-00 00:00:00", employeeupdate: "0000-00-00 00:00:00", name: "Semua Pegawai", phone: "", hp: "", otp: "", address: "", position: "", division: "", merid: "", identity: "", image: "", status: "", secret: "", email: "", akses: "", noktp: "", npwp: "", bankname: "", rekname: "", reknumber: "", type: "", imgktp: "" }];
-        const mergedEmplyData = [...allEmplyObj, ...allEmplyData];
-
         return (
           <Fragment>
             <DashboardHead title={pagetitle} />
@@ -1029,6 +1041,76 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </TBody>
               </Table>
             </DashboardBody>
+          </Fragment>
+        );
+      case "ABSENSI":
+        return (
+          <Fragment>
+            <DashboardHead title={pagetitle} />
+            <DashboardToolbar>
+              <DashboardTool>
+                <Input id={`search-data-${pageid}`} radius="md" labeled={false} placeholder="Cari data ..." type="text" value={absenceSearch} onChange={(e) => handleAbsenceSearch(e.target.value)} leadingicon={<Search />} />
+              </DashboardTool>
+              <DashboardTool>
+                <Select id={`limit-data-${pageid}`} labeled={false} noemptyval radius="md" placeholder="Baris per Halaman" value={limit} options={limitopt} onChange={handleLimitChange} readonly={!isAbsenceShown} />
+                <Button id={`filter-data-${pageid}`} buttonText="Filter Data" onClick={openForm} startContent={<Filter />} />
+              </DashboardTool>
+            </DashboardToolbar>
+            <DashboardBody>
+              <Table byNumber isNoData={!isAbsenceShown} isLoading={isFetching}>
+                <THead>
+                  <TR>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "name", "text")}>
+                      Nama PIC
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "startdate", "number")}>
+                      Tanggal Absensi
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "starttime", "number")}>
+                      Jam Masuk
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "endtime", "number")}>
+                      Jam Keluar
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "delayin", "number")}>
+                      Delay (in)
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "delayout", "number")}>
+                      Delay (out)
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "overin", "number")}>
+                      Over (in)
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "overout", "number")}>
+                      Over (out)
+                    </TH>
+                  </TR>
+                </THead>
+                <TBody>
+                  {filteredAbsenceData.map((data, index) => (
+                    <TR key={index}>
+                      <TD>{data.name}</TD>
+                      <TD>{data.startdate}</TD>
+                      <TD>{data.starttime === "" ? "-" : data.starttime}</TD>
+                      <TD>{data.endtime === "" ? "-" : data.endtime}</TD>
+                      <TD>{data.delayin === "" ? "-" : data.delayin}</TD>
+                      <TD>{data.delayout === "" ? "-" : data.delayout}</TD>
+                      <TD>{data.overin === "" ? "-" : data.overin}</TD>
+                      <TD>{data.overout === "" ? "-" : data.overout}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </DashboardBody>
+            {isFormOpen && (
+              <SubmitForm size="sm" formTitle="Terapkan Filter" operation="event" onClose={closeForm} cancelText="Tutup">
+                <Select id={`${pageid}-filter-employee`} searchable noemptyval label="Nama Pegawai" placeholder="Pilih Pegawai" value={selectedEmply} options={mergedEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onChange={handleEmplyChange} />
+                <Fieldset>
+                  <Input id={`${pageid}-filter-startdate`} label="Filter dari:" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                  <Input id={`${pageid}-filter-enddate`} label="Hingga:" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                </Fieldset>
+              </SubmitForm>
+            )}
           </Fragment>
         );
       default:

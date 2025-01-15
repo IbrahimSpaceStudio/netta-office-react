@@ -429,6 +429,12 @@ const DashboardParamsPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "bobot", "text")}>
                       Bobot
                     </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "achievement", "number")}>
+                      Pencapaian
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(programDetailData, setProgramDetailData, "score", "number")}>
+                      Skor
+                    </TH>
                   </TR>
                 </THead>
                 <TBody>
@@ -447,6 +453,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
                       <TD>{data.sourcename}</TD>
                       <TD>{data.target}</TD>
                       <TD>{data.bobot}</TD>
+                      <TD>{data.achievement}</TD>
+                      <TD>{data.score}</TD>
                     </TR>
                   ))}
                 </TBody>
@@ -595,27 +603,31 @@ const DashboardParamsPage = ({ parent, slug }) => {
               <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "options", "text")}>
+                      Tipe Pengerjaan
+                    </TH>
                     <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "link", "text")}>
                       Link Konten
                     </TH>
-                    <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "file", "text")}>
-                      File
-                    </TH>
                     <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "description", "text")}>
-                      Deskripsi Pengerjaan
+                      Deskripsi
                     </TH>
                     <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "note", "text")}>
                       Catatan
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "correction", "text")}>
+                      Koreksi
                     </TH>
                   </TR>
                 </THead>
                 <TBody>
                   {reportDetailData.map((data, index) => (
                     <TR key={index}>
-                      <TD>{data.link}</TD>
-                      <TD>{data.file}</TD>
-                      <TD>{data.description}</TD>
-                      <TD>{data.note}</TD>
+                      <TD>{data.options}</TD>
+                      <TD type="link">{data.link}</TD>
+                      <TD>{data.description === "" ? "-" : data.description}</TD>
+                      <TD>{data.note === "" ? "-" : data.note}</TD>
+                      <TD>{data.correction === "" ? "Belum ada koreksi." : data.correction}</TD>
                     </TR>
                   ))}
                 </TBody>
