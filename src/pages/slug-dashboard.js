@@ -277,11 +277,12 @@ const DashboardSlugPage = ({ parent, slug }) => {
               } else setJobData([]);
               break;
             case "3":
-              addtFormData.append("data", JSON.stringify({ secret, status: "2" }));
-              data = await apiRead(addtFormData, "kpi", "viewjobstatus");
+              addtFormData.append("data", JSON.stringify({ secret, status: "3" }));
+              data = await apiRead(addtFormData, "kpi", "viewjobstatus2");
               if (data && data.data && data.data.length > 0) {
                 const resultdata = data.data;
                 setJobData(resultdata);
+                log("job status v2:", resultdata);
               } else setJobData([]);
               break;
             default:
@@ -757,7 +758,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
         };
 
         const handleOnpageTabChange = (id) => setOnpageTabId(id);
-
         const onPageTabButton = [
           { label: "Proses Hari Ini", onClick: () => handleOnpageTabChange("1"), active: onPageTabId === "1" },
           { label: "Selesai", onClick: () => handleOnpageTabChange("2"), active: onPageTabId === "2" },
@@ -777,85 +777,148 @@ const DashboardSlugPage = ({ parent, slug }) => {
             </DashboardToolbar>
             <TabSwitch buttons={onPageTabButton} />
             <DashboardBody>
-              <Table byNumber isClickable={onPageTabId === "2"} isNoData={!isJobShown} isLoading={isFetching}>
-                <THead>
-                  <TR>
-                    <Fragment>
-                      {onPageTabId === "1" && (
-                        <Fragment>
-                          <TH type="custom">Action</TH>
-                          <TH type="custom">Timer</TH>
-                        </Fragment>
-                      )}
-                    </Fragment>
-                    <Fragment>
-                      {onPageTabId === "2" && (
-                        <TH isSorted onSort={() => handleSort(jobData, setJobData, "actioncreate", "date")}>
-                          Tanggal Pengerjaan
-                        </TH>
-                      )}
-                    </Fragment>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "progname", "text")}>
-                      Nama Program
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "number")}>
-                      Tipe
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "day", "number")}>
-                      Hari
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "starttime", "number")}>
-                      Jam Mulai
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "endtime", "number")}>
-                      Jam Berakhir
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "channel", "text")}>
-                      Channel
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
-                      Sumber
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "target", "number")}>
-                      Target
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "bobot", "number")}>
-                      Bobot
-                    </TH>
-                    <TH isSorted onSort={() => handleSort(jobData, setJobData, "info", "text")}>
-                      Catatan
-                    </TH>
-                  </TR>
-                </THead>
-                <TBody>
-                  {filteredJobData.map((data, index) => (
-                    <TR key={index} onClick={onPageTabId === "2" ? () => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idaction)}`) : () => {}} isComplete={onPageTabId === "2"} isDanger={timers[index] === "00:00:00" && onPageTabId !== "2"}>
+              {onPageTabId === "3" ? (
+                <Table byNumber isClickable isNoData={jobData.length <= 0} isLoading={isFetching}>
+                  <THead>
+                    <TR>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.progname", "text")}>
+                        Nama Program
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.type", "number")}>
+                        Tipe
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.day", "number")}>
+                        Hari (mingguan)
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.date", "number")}>
+                        Tanggal (bulanan)
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.starttime", "number")}>
+                        Jam Mulai
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.endtime", "number")}>
+                        Jam Berakhir
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.channel", "text")}>
+                        Channel
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.sourcename", "text")}>
+                        Sumber
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.target", "number")}>
+                        Target
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.bobot", "number")}>
+                        Bobot
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.info", "text")}>
+                        Catatan
+                      </TH>
+                    </TR>
+                  </THead>
+                  <TBody>
+                    {jobData.map((data, index) => (
+                      <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data["action"].idaction)}`)}>
+                        <TD>{data["action"] && data["action"].progname}</TD>
+                        <TD>{data["action"] && typeAlias(data["action"].type)}</TD>
+                        <TD>{data["action"] && data["action"].day === "" ? "-" : dayAlias(data["action"] && data["action"].day)}</TD>
+                        <TD>{data["action"] && data["action"].date === "" ? "-" : data["action"] && data["action"].date}</TD>
+                        <TD>{data["action"] && data["action"].starttime}</TD>
+                        <TD>{data["action"] && data["action"].endtime}</TD>
+                        <TD>{data["action"] && data["action"].channel}</TD>
+                        <TD>{data["action"] && data["action"].sourcename}</TD>
+                        <TD>{data["action"] && data["action"].target}</TD>
+                        <TD>{data["action"] && data["action"].bobot}</TD>
+                        <TD>{data["action"] && data["action"].info === "" ? "-" : data["action"] && data["action"].info}</TD>
+                      </TR>
+                    ))}
+                  </TBody>
+                </Table>
+              ) : (
+                <Table byNumber isClickable={onPageTabId === "2"} isNoData={!isJobShown} isLoading={isFetching}>
+                  <THead>
+                    <TR>
                       <Fragment>
                         {onPageTabId === "1" && (
                           <Fragment>
-                            <TD type="custom">
-                              {timers[index] !== "00:00:00" && <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail, data.type)} />}
-                              {timers[index] === "00:00:00" && <span style={{ color: "var(--color-red)" }}>Terlewat</span>}
-                            </TD>
-                            <TD type="custom">{timers[index]}</TD>
+                            <TH type="custom">Action</TH>
+                            <TH type="custom">Timer</TH>
                           </Fragment>
                         )}
                       </Fragment>
-                      <Fragment>{onPageTabId === "2" && <TD>{newDate(data.actioncreate, "id")}</TD>}</Fragment>
-                      <TD>{data.progname}</TD>
-                      <TD>{typeAlias(data.type)}</TD>
-                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
-                      <TD>{data.starttime}</TD>
-                      <TD>{data.endtime}</TD>
-                      <TD>{data.channel}</TD>
-                      <TD>{data.sourcename}</TD>
-                      <TD>{data.target}</TD>
-                      <TD>{data.bobot}</TD>
-                      <TD>{data.info === "" ? "-" : data.info}</TD>
+                      <Fragment>
+                        {onPageTabId === "2" && (
+                          <TH isSorted onSort={() => handleSort(jobData, setJobData, "actioncreate", "date")}>
+                            Tanggal Pengerjaan
+                          </TH>
+                        )}
+                      </Fragment>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "progname", "text")}>
+                        Nama Program
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "number")}>
+                        Tipe
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "day", "number")}>
+                        Hari (mingguan)
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "date", "number")}>
+                        Tanggal (bulanan)
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "starttime", "number")}>
+                        Jam Mulai
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "endtime", "number")}>
+                        Jam Berakhir
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "channel", "text")}>
+                        Channel
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "sourcename", "text")}>
+                        Sumber
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "target", "number")}>
+                        Target
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "bobot", "number")}>
+                        Bobot
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "info", "text")}>
+                        Catatan
+                      </TH>
                     </TR>
-                  ))}
-                </TBody>
-              </Table>
+                  </THead>
+                  <TBody>
+                    {filteredJobData.map((data, index) => (
+                      <TR key={index} onClick={onPageTabId === "2" ? () => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idaction)}`) : () => {}} isComplete={onPageTabId === "2"} isDanger={timers[index] === "00:00:00" && onPageTabId !== "2"}>
+                        <Fragment>
+                          {onPageTabId === "1" && (
+                            <Fragment>
+                              <TD type="custom">
+                                {timers[index] !== "00:00:00" && <Button size="sm" buttonText="Report" onClick={() => openReport(data.idprogramdetail, data.type)} />}
+                                {timers[index] === "00:00:00" && <span style={{ color: "var(--color-red)" }}>Terlewat</span>}
+                              </TD>
+                              <TD type="custom">{timers[index]}</TD>
+                            </Fragment>
+                          )}
+                        </Fragment>
+                        <Fragment>{onPageTabId === "2" && <TD>{newDate(data.actioncreate, "id")}</TD>}</Fragment>
+                        <TD>{data.progname}</TD>
+                        <TD>{typeAlias(data.type)}</TD>
+                        <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
+                        <TD>{data.date === "" ? "-" : data.date}</TD>
+                        <TD>{data.starttime}</TD>
+                        <TD>{data.endtime}</TD>
+                        <TD>{data.channel}</TD>
+                        <TD>{data.sourcename}</TD>
+                        <TD>{data.target}</TD>
+                        <TD>{data.bobot}</TD>
+                        <TD>{data.info === "" ? "-" : data.info}</TD>
+                      </TR>
+                    ))}
+                  </TBody>
+                </Table>
+              )}
             </DashboardBody>
             {isFormOpen && (
               <SubmitForm size="md" formTitle="Report Hasil Pengerjaan" operation="add" fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addjob")} loading={isSubmitting} onClose={closeForm}>
@@ -942,7 +1005,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 </THead>
                 <TBody>
                   {filteredReportData.map((data, index) => (
-                    <TR key={index} isWarning={data.statusaction === "2"} onClick={data.statusaction === "1" ? () => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idaction)}`) : () => {}}>
+                    <TR key={index} isWarning={data.statusaction === "3"} onClick={data.statusaction === "1" ? () => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data.idaction)}`) : () => {}}>
                       <TD>{newDate(data.actioncreate, "id")}</TD>
                       <TD>{reportStatAlias(data.statusaction)}</TD>
                       <TD>{data.name}</TD>
@@ -987,9 +1050,6 @@ const DashboardSlugPage = ({ parent, slug }) => {
               <Table byNumber isNoData={!isReportTeamShown} isLoading={isFetching}>
                 <THead>
                   <TR>
-                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "name", "text")}>
-                      Nama
-                    </TH>
                     <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "progname", "text")}>
                       Nama Program
                     </TH>
@@ -998,6 +1058,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     </TH>
                     <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "day", "number")}>
                       Hari
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "date", "number")}>
+                      Tanggal
                     </TH>
                     <TH isSorted onSort={() => handleSort(reportTeamData, setReportTeamData, "starttime", "number")}>
                       Jam Mulai
@@ -1025,10 +1088,10 @@ const DashboardSlugPage = ({ parent, slug }) => {
                 <TBody>
                   {filteredReportTeamData.map((data, index) => (
                     <TR key={index}>
-                      <TD>{data.name}</TD>
                       <TD>{data.progname}</TD>
                       <TD>{typeAlias(data.type)}</TD>
-                      <TD>{data.day !== "" ? dayAlias(data.day) : ""}</TD>
+                      <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
+                      <TD>{data.date === "" ? "-" : data.date}</TD>
                       <TD>{data.starttime}</TD>
                       <TD>{data.endtime}</TD>
                       <TD>{data.channel}</TD>
@@ -1084,6 +1147,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "overout", "number")}>
                       Over (out)
                     </TH>
+                    <TH isSorted onSort={() => handleSort(absenceData, setAbsenceData, "hour", "number")}>
+                      HH:mm:ss
+                    </TH>
                   </TR>
                 </THead>
                 <TBody>
@@ -1097,6 +1163,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <TD>{data.delayout === "" ? "-" : data.delayout}</TD>
                       <TD>{data.overin === "" ? "-" : data.overin}</TD>
                       <TD>{data.overout === "" ? "-" : data.overout}</TD>
+                      <TD>{`${data.hour}:${data.minute}:${data.second}`}</TD>
                     </TR>
                   ))}
                 </TBody>
@@ -1119,17 +1186,19 @@ const DashboardSlugPage = ({ parent, slug }) => {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimers((prevTimers) => {
-        const newTimers = { ...prevTimers };
-        jobData.forEach((data, index) => {
-          newTimers[index] = calculateRemainingTime(data.starttime, data.endtime);
+    if (onPageTabId === "1") {
+      const interval = setInterval(() => {
+        setTimers((prevTimers) => {
+          const newTimers = { ...prevTimers };
+          jobData.forEach((data, index) => {
+            newTimers[index] = calculateRemainingTime(data.starttime, data.endtime);
+          });
+          return newTimers;
         });
-        return newTimers;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [jobData]);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [onPageTabId, jobData]);
 
   useEffect(() => {
     setInputData({ ...inputSchema });

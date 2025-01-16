@@ -1,6 +1,6 @@
 import React, { Fragment, useState, useEffect } from "react";
 import { useNavigate, Navigate, useParams } from "react-router-dom";
-import { useContent, useDevmode } from "@ibrahimstudio/react";
+import { useContent, useDevmode, useFormat } from "@ibrahimstudio/react";
 import { Button } from "@ibrahimstudio/button";
 import { Input } from "@ibrahimstudio/input";
 import { Select } from "@ibrahimstudio/select";
@@ -8,7 +8,7 @@ import { Textarea } from "@ibrahimstudio/textarea";
 import { useAuth } from "../libs/securities/auth";
 import { useApi } from "../libs/apis/office";
 import { useNotifications } from "../components/feedbacks/context/notifications-context";
-import { useAlias } from "../libs/plugins/helper";
+import { useAlias, useOptions } from "../libs/plugins/helper";
 import { getNestedValue, inputValidator } from "../libs/plugins/controller";
 import { inputSchema, errorSchema } from "../libs/sources/common";
 import Pages from "../components/frames/pages";
@@ -23,12 +23,14 @@ import TabSwitch from "../components/input-controls/tab-switch";
 const DashboardParamsPage = ({ parent, slug }) => {
   const { params } = useParams();
   const navigate = useNavigate();
+  const { newDate } = useFormat();
   const { toPathname, toTitleCase } = useContent();
   const { log } = useDevmode();
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
   const { typeAlias, dayAlias } = useAlias();
+  const { reporttypeopt } = useOptions();
 
   const pageid = parent && slug && params ? `params-${toPathname(parent)}-${toPathname(slug)}-${toPathname(params)}` : "params-dashboard";
 
@@ -51,6 +53,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const [jobType, setJobType] = useState("1");
   const [day, setDay] = useState("1");
   const [reportDetailData, setReportDetailData] = useState([]);
+  const [scoreData, setScoreData] = useState([]);
 
   const [inputData, setInputData] = useState({ ...inputSchema });
   const [errors, setErrors] = useState({ ...errorSchema });
@@ -75,6 +78,23 @@ const DashboardParamsPage = ({ parent, slug }) => {
     switchData(params);
     setSelectedMode("update");
     setIsFormOpen(true);
+  };
+
+  const handleFileUpload = async (file) => {
+    const formData = new FormData();
+    setIsSubmitting(true);
+    try {
+      formData.append("data", JSON.stringify({ secret }));
+      formData.append("fileimg", file);
+      const data = await apiRead(formData, "kpi", "uploadfile");
+      if (data && data.error === false) return data.data;
+      else return null;
+    } catch (error) {
+      showNotifications("danger", "Gagal mengupload file. Mohon periksa koneksi internet anda dan coba lagi.");
+      console.error("Gagal mengupload file. Mohon periksa koneksi internet anda dan coba lagi.", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -165,6 +185,8 @@ const DashboardParamsPage = ({ parent, slug }) => {
     const errormsg = `Terjadi kesalahan saat memuat halaman ${toTitleCase(slug)} ${toTitleCase(params)}. Mohon periksa koneksi internet anda dan coba lagi.`;
     setIsFetching(true);
     const formData = new FormData();
+    const addtFormData = new FormData();
+    const now = new Date();
     let data;
     try {
       switch (slug) {
@@ -174,10 +196,15 @@ const DashboardParamsPage = ({ parent, slug }) => {
           if (data && data.data && data.data.length > 0) {
             setProgramDetailData(data.data);
             setPageTitle(`Detail Program ${data.data[0].name}`);
+            const month = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", month: "2-digit" }).format(now);
+            addtFormData.append("data", JSON.stringify({ secret, idemployee: data.data[0].idpic, month }));
+            const scoredata = await apiRead(addtFormData, "kpi", "viewscore");
+            setScoreData(scoredata && scoredata.data && scoredata.data.length > 0 ? scoredata.data : []);
             setIsDataShown(true);
           } else {
             setProgramDetailData([]);
             setPageTitle("");
+            setScoreData([]);
             setIsDataShown(false);
           }
           break;
@@ -281,6 +308,10 @@ const DashboardParamsPage = ({ parent, slug }) => {
         break;
       case "HASIL KERJA":
         requiredFields = "correction";
+        break;
+      case "JOB":
+        requiredFields = ["link", "desc"];
+        break;
       default:
         requiredFields = [];
         break;
@@ -307,12 +338,16 @@ const DashboardParamsPage = ({ parent, slug }) => {
         case "HASIL KERJA":
           submittedData = { secret, correction: inputData.correction };
           break;
+        case "JOB":
+          submittedData = { secret, description: inputData.desc, note: inputData.note, link: inputData.link, options: inputData.options };
+          break;
         default:
           break;
       }
       const formData = new FormData();
       formData.append("data", JSON.stringify(submittedData));
-      if (slug === "HASIL KERJA") formData.append("idedit", params);
+      if (slug === "HASIL KERJA") formData.append("idedit", selectedData);
+      if (slug === "JOB") formData.append("idedit", selectedData);
       await apiCrud(formData, scope, endpoint);
       showNotifications("success", successmsg);
       log("submitted data:", submittedData);
@@ -460,6 +495,45 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 </TBody>
               </Table>
             </DashboardBody>
+            <DashboardHead title="Skor Kinerja" />
+            <DashboardBody>
+              <Table byNumber isNoData={scoreData.length <= 0} isLoading={isFetching}>
+                <THead>
+                  <TR>
+                    <TH isSorted onSort={() => handleSort(scoreData, setScoreData, "target", "number")}>
+                      Target
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(scoreData, setScoreData, "value", "number")}>
+                      Value
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(scoreData, setScoreData, "achievement", "number")}>
+                      Pencapaian
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(scoreData, setScoreData, "score", "number")}>
+                      Skor
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(scoreData, setScoreData, "scorecreate", "date")}>
+                      Tanggal Dibuat
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(scoreData, setScoreData, "scoreupdate", "date")}>
+                      Tanggal Diupdate
+                    </TH>
+                  </TR>
+                </THead>
+                <TBody>
+                  {scoreData.map((data, index) => (
+                    <TR key={index}>
+                      <TD>{data.target}</TD>
+                      <TD>{data.value}</TD>
+                      <TD>{data.achievement}</TD>
+                      <TD>{data.score}</TD>
+                      <TD>{newDate(data.scorecreate, "id")}</TD>
+                      <TD>{data.scoreupdate === "0000-00-00 00:00:00" ? "-" : newDate(data.scoreupdate, "id")}</TD>
+                    </TR>
+                  ))}
+                </TBody>
+              </Table>
+            </DashboardBody>
             {isFormOpen && (
               <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Detail Program" : "Tambah Detail Program"} operation={selectedMode} fetching={isFormFetching} onSubmit={selectedMode === "update" ? (e) => handleSubmit(e, "editprogramdetail") : (e) => handleSubmit(e, "addprogramdetail")} loading={isSubmitting} onClose={closeForm}>
                 {selectedMode === "update" ? (
@@ -551,6 +625,19 @@ const DashboardParamsPage = ({ parent, slug }) => {
           </Fragment>
         );
       case "JOB":
+        const openSCorrection = (params, data) => {
+          setSelectedData(params);
+          setInputData({ desc: data.description, note: data.note, link: data.link, options: data.options, correction: data.correction });
+          setIsFormOpen(true);
+        };
+
+        const handleMediaSelect = async (file) => {
+          if (file) {
+            const link = await handleFileUpload(file);
+            setInputData({ ...inputData, link });
+          }
+        };
+
         return (
           <Fragment>
             <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
@@ -563,46 +650,77 @@ const DashboardParamsPage = ({ parent, slug }) => {
               <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH type="custom">Action</TH>
+                    <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "options", "text")}>
+                      Tipe Pengerjaan
+                    </TH>
                     <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "link", "text")}>
                       Link Konten
                     </TH>
-                    <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "file", "text")}>
-                      File
-                    </TH>
                     <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "description", "text")}>
-                      Deskripsi Pengerjaan
+                      Deskripsi
                     </TH>
                     <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "note", "text")}>
                       Catatan
+                    </TH>
+                    <TH isSorted onSort={() => handleSort(jobDetailData, setJobDetailData, "correction", "text")}>
+                      Koreksi
                     </TH>
                   </TR>
                 </THead>
                 <TBody>
                   {jobDetailData.map((data, index) => (
                     <TR key={index}>
-                      <TD>{data.link}</TD>
-                      <TD>{data.file}</TD>
-                      <TD>{data.description}</TD>
-                      <TD>{data.note}</TD>
+                      <TD type="custom">{data.correction === "" ? <span style={{ color: "var(--color-green)" }}>Baik</span> : <Button size="sm" buttonText="Perbaiki" onClick={() => openSCorrection(data.idactiondetail, data)} />}</TD>
+                      <TD>{data.options}</TD>
+                      <TD type="link">{data.link}</TD>
+                      <TD>{data.description === "" ? "-" : data.description}</TD>
+                      <TD>{data.note === "" ? "-" : data.note}</TD>
+                      <TD>{data.correction === "" ? "Belum ada koreksi." : data.correction}</TD>
                     </TR>
                   ))}
                 </TBody>
               </Table>
             </DashboardBody>
+            {isFormOpen && (
+              <SubmitForm size="md" formTitle="Perbaiki Hasil Pengerjaan" operation="update" fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "editcorection")} loading={isSubmitting} onClose={closeForm}>
+                <Textarea id={`${pageid}-correction`} radius="md" label="Koreksi SPV" name="correction" value={inputData.correction} rows={5} readonly />
+                <Fieldset>
+                  <Select id={`${pageid}-type`} noemptyval radius="md" label="Tipe Laporan" placeholder="Pilih tipe" name="options" value={inputData.options} options={reporttypeopt} onChange={(selectedValue) => handleInputChange({ target: { name: "options", value: selectedValue } })} errormsg={errors.options} required />
+                  {inputData.options === "link" ? (
+                    <Input id={`${pageid}-link`} type="url" radius="md" label="Link Konten" name="link" placeholder={`Masukkan link dengan https://`} value={inputData.link} onChange={handleInputChange} errormsg={errors.link} required />
+                  ) : inputData.options === "img" ? (
+                    <Input id={`${pageid}-link`} type="file" accept="image/*" radius="md" label="File Gambar" name="link" placeholder="Pilih Gambar" onChange={(file) => handleMediaSelect(file)} required />
+                  ) : inputData.options === "video" ? (
+                    <Input id={`${pageid}-link`} type="file" accept="video/*" radius="md" label="File Video" name="link" placeholder="Pilih Video" onChange={(file) => handleMediaSelect(file)} required />
+                  ) : (
+                    <Input id={`${pageid}-link`} type="file" radius="md" label="File" name="link" placeholder="Pilih File" onChange={(file) => handleMediaSelect(file)} required />
+                  )}
+                  <Textarea id={`${pageid}-desc`} radius="md" label="Deskripsi Pengerjaan" name="desc" placeholder="Masukkan hasil pengerjaan" value={inputData.desc} onChange={handleInputChange} errormsg={errors.desc} rows={5} required />
+                  <Textarea id={`${pageid}-note`} radius="md" label="Catatan" name="note" placeholder="Masukkan catatan" value={inputData.note} onChange={handleInputChange} errormsg={errors.note} rows={5} />
+                </Fieldset>
+              </SubmitForm>
+            )}
           </Fragment>
         );
       case "HASIL KERJA":
+        const openACorrection = (params) => {
+          setSelectedData(params);
+          setIsFormOpen(true);
+          log("selected job detail id:", params);
+        };
+
         return (
           <Fragment>
             <DashboardHead title={isFetching ? "Memuat data ..." : isDataShown ? pageTitle : "Tidak ada data."} />
             <DashboardToolbar>
               <Button id={`${pageid}-back-previous-page`} buttonText="Kembali" radius="md" onClick={goBack} startContent={<Arrow direction="left" />} />
-              <Button id={`${pageid}-correction`} buttonText="Koreksi" radius="md" onClick={openForm} startContent={<Plus />} />
             </DashboardToolbar>
             <DashboardBody>
               <Table byNumber isNoData={!isDataShown} isLoading={isFetching}>
                 <THead>
                   <TR>
+                    <TH type="custom">Action</TH>
                     <TH isSorted onSort={() => handleSort(reportDetailData, setReportDetailData, "options", "text")}>
                       Tipe Pengerjaan
                     </TH>
@@ -623,6 +741,9 @@ const DashboardParamsPage = ({ parent, slug }) => {
                 <TBody>
                   {reportDetailData.map((data, index) => (
                     <TR key={index}>
+                      <TD type="custom">
+                        <Button size="sm" buttonText="Koreksi" onClick={() => openACorrection(data.idactiondetail)} />
+                      </TD>
                       <TD>{data.options}</TD>
                       <TD type="link">{data.link}</TD>
                       <TD>{data.description === "" ? "-" : data.description}</TD>
@@ -634,7 +755,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
               </Table>
             </DashboardBody>
             {isFormOpen && (
-              <SubmitForm size="md" formTitle={selectedMode === "update" ? "Ubah Koreksi" : "Tambah Koreksi"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addcorection")} loading={isSubmitting} onClose={closeForm}>
+              <SubmitForm size="sm" formTitle={selectedMode === "update" ? "Ubah Koreksi" : "Tambah Koreksi"} operation={selectedMode} fetching={isFormFetching} onSubmit={(e) => handleSubmit(e, "addcorection")} loading={isSubmitting} onClose={closeForm}>
                 <Textarea id={`${pageid}-correction`} radius="md" label="Koreksi" placeholder="Masukkan koreksi" name="correction" value={inputData.correction} onChange={handleInputChange} errormsg={errors.correction} rows={5} />
               </SubmitForm>
             )}
