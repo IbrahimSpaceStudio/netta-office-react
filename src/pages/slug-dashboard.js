@@ -37,8 +37,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
   const { isLoggedin, secret } = useAuth();
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
-  const { limitopt, levelopt, usrstatopt, marriedstatopt, stafftypeopt, reporttypeopt } = useOptions();
-  const { typeAlias, reportStatAlias, dayAlias } = useAlias();
+  const { limitopt, levelopt, usrstatopt, marriedstatopt, stafftypeopt, reporttypeopt, jobplanopt } = useOptions();
+  const { typeAlias, reportStatAlias, dayAlias, jobPlanAlias } = useAlias();
 
   const pageid = parent && slug ? `slug-${toPathname(parent)}-${toPathname(slug)}` : "slug-dashboard";
   const pagetitle = slug ? `${toTitleCase(slug)}` : "Slug Dashboard";
@@ -391,8 +391,8 @@ const DashboardSlugPage = ({ parent, slug }) => {
         requiredFields = ["name", "phone", "email", "address", "position", "level", "division", "married_status", "nik", "npwp", "bank_name", "bank_holder", "bank_number", "type"];
         break;
       case "PROGRAM":
-        if (inputData.type === "3") requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
-        else requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
+        if (inputData.type === "3") requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date", "program.job"];
+        else requiredFields = ["pic", "program_status", "program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.job"];
         break;
       case "JOB":
         requiredFields = ["job.link", "job.description"];
@@ -741,6 +741,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     <Input id={`${pageid}-channel-${index}`} radius="md" label="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} required />
                     <Input id={`${pageid}-target-${index}`} radius="md" label="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} required />
                     <Input id={`${pageid}-bobot-${index}`} radius="md" label="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} required />
+                    <Select id={`${pageid}-plan-${index}`} radius="md" label="Tipe" noemptyval name="job" value={item.job} options={jobplanopt} onChange={(selectedValue) => handleRowChange("program", index, { target: { name: "job", value: selectedValue } })} errormsg={errors[`program.${index}.job`] ? errors[`program.${index}.job`] : ""} required />
                     <Textarea id={`${pageid}-info-${index}`} radius="md" label="Informasi Tambahan" placeholder="Masukkan informasi tambahan" name="info" value={item.info} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.info`] ? errors[`program.${index}.info`] : ""} rows={5} />
                   </Fieldset>
                 ))}
@@ -784,6 +785,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.progname", "text")}>
                         Nama Program
                       </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.job", "number")}>
+                        Jenis
+                      </TH>
                       <TH isSorted onSort={() => handleSort(jobData, setJobData, "action.type", "number")}>
                         Tipe
                       </TH>
@@ -820,6 +824,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                     {jobData.map((data, index) => (
                       <TR key={index} onClick={() => navigate(`/${toPathname(parent)}/${toPathname(slug)}/${toPathname(data["action"].idaction)}`)}>
                         <TD>{data["action"] && data["action"].progname}</TD>
+                        <TD>{data["action"] && jobPlanAlias(data["action"].job)}</TD>
                         <TD>{data["action"] && typeAlias(data["action"].type)}</TD>
                         <TD>{data["action"] && data["action"].day === "" ? "-" : dayAlias(data["action"] && data["action"].day)}</TD>
                         <TD>{data["action"] && data["action"].date === "" ? "-" : data["action"] && data["action"].date}</TD>
@@ -855,6 +860,9 @@ const DashboardSlugPage = ({ parent, slug }) => {
                       </Fragment>
                       <TH isSorted onSort={() => handleSort(jobData, setJobData, "progname", "text")}>
                         Nama Program
+                      </TH>
+                      <TH isSorted onSort={() => handleSort(jobData, setJobData, "job", "number")}>
+                        Jenis
                       </TH>
                       <TH isSorted onSort={() => handleSort(jobData, setJobData, "type", "number")}>
                         Tipe
@@ -904,6 +912,7 @@ const DashboardSlugPage = ({ parent, slug }) => {
                         </Fragment>
                         <Fragment>{onPageTabId === "2" && <TD>{newDate(data.actioncreate, "id")}</TD>}</Fragment>
                         <TD>{data.progname}</TD>
+                        <TD>{jobPlanAlias(data.job)}</TD>
                         <TD>{typeAlias(data.type)}</TD>
                         <TD>{data.day === "" ? "-" : dayAlias(data.day)}</TD>
                         <TD>{data.date === "" ? "-" : data.date}</TD>

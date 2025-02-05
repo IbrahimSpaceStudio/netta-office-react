@@ -87,7 +87,11 @@ export const useOptions = () => {
     { value: "file", label: "File" },
     { value: "link", label: "Link" },
   ];
-  return { limitopt, jobtypeopt, genderopt, stafftypeopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt, reporttypeopt };
+  const jobplanopt = [
+    { value: "0", label: "Reguler" },
+    { value: "1", label: "Project" },
+  ];
+  return { limitopt, jobtypeopt, genderopt, stafftypeopt, levelopt, usrstatopt, unitopt, houropt, postatopt, pocstatopt, reservstatopt, paymentstatopt, paymenttypeopt, orderstatopt, reportstatopt, stockoutstatopt, diagnoseopt, marriedstatopt, reporttypeopt, jobplanopt };
 };
 
 export const useAlias = () => {
@@ -118,5 +122,8 @@ export const useAlias = () => {
   const dayAlias = (day) => {
     return day === "1" ? "Senin" : day === "2" ? "Selasa" : day === "3" ? "Rabu" : day === "4" ? "Kamis" : day === "5" ? "Jumat" : day === "6" ? "Sabtu" : "Minggu";
   };
-  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias, reportStatAlias, dayAlias };
+  const jobPlanAlias = (type) => {
+    return type === "1" ? "Project" : "Reguler";
+  };
+  return { paymentAlias, orderAlias, invoiceAlias, poAlias, usrstatAlias, reservAlias, typeAlias, reportStatAlias, dayAlias, jobPlanAlias };
 };

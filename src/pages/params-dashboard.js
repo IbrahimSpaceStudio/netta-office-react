@@ -30,7 +30,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
   const { apiRead, apiCrud } = useApi();
   const { showNotifications } = useNotifications();
   const { typeAlias, dayAlias } = useAlias();
-  const { reporttypeopt } = useOptions();
+  const { reporttypeopt, jobplanopt } = useOptions();
 
   const pageid = parent && slug && params ? `params-${toPathname(parent)}-${toPathname(slug)}-${toPathname(params)}` : "params-dashboard";
 
@@ -277,7 +277,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
         case "PROGRAM":
           switchedData = currentData(programDetailData, "idprogramdetail");
           log(`id ${slug} data switched:`, switchedData.idprogramdetail);
-          setInputData({ id: switchedData.idprogramdetail, idsource: switchedData.idsource, program_name: switchedData.progname, channel: switchedData.channel, target: switchedData.target, bobot: switchedData.bobot, start_time: switchedData.starttime, end_time: switchedData.endtime, day: switchedData.day, date: switchedData.date, type: switchedData.type, desc: switchedData.info });
+          setInputData({ id: switchedData.idprogramdetail, idsource: switchedData.idsource, program_name: switchedData.progname, channel: switchedData.channel, target: switchedData.target, bobot: switchedData.bobot, start_time: switchedData.starttime, end_time: switchedData.endtime, day: switchedData.day, date: switchedData.date, type: switchedData.type, desc: switchedData.info, jobplan: switchedData.job });
           setJobType(switchedData.type);
           setDay(switchedData.day);
           break;
@@ -299,11 +299,11 @@ const DashboardParamsPage = ({ parent, slug }) => {
     switch (slug) {
       case "PROGRAM":
         if (selectedMode === "update") {
-          if (jobType === "3") requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time", "date"];
-          else requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time"];
+          if (jobType === "3") requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time", "date", "jobplan"];
+          else requiredFields = ["program_name", "channel", "target", "bobot", "start_time", "end_time", "jobplan"];
         } else {
-          if (jobType === "3") requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date"];
-          else requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime"];
+          if (jobType === "3") requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.date", "program.job"];
+          else requiredFields = ["program.idsource", "program.progname", "program.channel", "program.target", "program.bobot", "program.starttime", "program.endtime", "program.job"];
         }
         break;
       case "HASIL KERJA":
@@ -332,7 +332,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
       let submittedData;
       switch (slug) {
         case "PROGRAM":
-          if (selectedMode === "update") submittedData = { secret, idprogdetail: selectedData, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType, info: inputData.desc };
+          if (selectedMode === "update") submittedData = { secret, idprogdetail: selectedData, idsource: inputData.idsource, progname: inputData.program_name, channel: inputData.channel, target: inputData.target, bobot: inputData.bobot, starttime: inputData.start_time, endtime: inputData.end_time, day: day, date: inputData.date, type: jobType, info: inputData.desc, job: inputData.jobplan };
           else submittedData = { secret, idpic: programDetailData[0].idpic, idprogram: params, detail: inputData.program };
           break;
         case "HASIL KERJA":
@@ -562,9 +562,10 @@ const DashboardParamsPage = ({ parent, slug }) => {
                         </Fieldset>
                       </Fragment>
                     )}
+                    <Select id={`${pageid}-source`} searchable radius="md" label="Sumber" placeholder="Pilih sumber" name="idsource" value={inputData.idsource} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onChange={(selectedValue) => handleInputChange({ target: { name: "idsource", value: selectedValue } })} errormsg={errors.idsource} required />
                     <Fieldset>
-                      <Select id={`${pageid}-source`} searchable radius="md" label="Sumber" placeholder="Pilih sumber" name="idsource" value={inputData.idsource} options={allEmplyData.map((item) => ({ value: item.idemployee, label: item.name }))} onChange={(selectedValue) => handleInputChange({ target: { name: "idsource", value: selectedValue } })} errormsg={errors.idsource} required />
                       <Input id={`${pageid}-channel`} radius="md" label="Channel" placeholder="Masukkan channel" type="text" name="channel" value={inputData.channel} onChange={handleInputChange} errormsg={errors.channel} required />
+                      <Select id={`${pageid}-plan`} radius="md" label="Tipe" name="jobplan" noemptyval value={inputData.jobplan} options={jobplanopt} onChange={(selectedValue) => handleInputChange({ target: { name: "jobplan", value: selectedValue } })} errormsg={errors.jobplan} required />
                     </Fieldset>
                     <Fieldset>
                       <Input id={`${pageid}-target`} radius="md" label="Target" placeholder="Masukkan target" type="text" name="target" value={inputData.target} onChange={handleInputChange} errormsg={errors.target} required />
@@ -615,6 +616,7 @@ const DashboardParamsPage = ({ parent, slug }) => {
                         <Input id={`${pageid}-channel-${index}`} radius="md" label="Channel" placeholder="Masukkan channel" type="text" name="channel" value={item.channel} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.channel`] ? errors[`program.${index}.channel`] : ""} required />
                         <Input id={`${pageid}-target-${index}`} radius="md" label="Target" placeholder="Masukkan target" type="text" name="target" value={item.target} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.target`] ? errors[`program.${index}.target`] : ""} required />
                         <Input id={`${pageid}-bobot-${index}`} radius="md" label="Bobot" placeholder="Masukkan bobot" type="text" name="bobot" value={item.bobot} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.bobot`] ? errors[`program.${index}.bobot`] : ""} required />
+                        <Select id={`${pageid}-plan-${index}`} radius="md" label="Tipe" name="job" value={item.job} options={jobplanopt} onChange={(selectedValue) => handleRowChange("program", index, { target: { name: "job", value: selectedValue } })} errormsg={errors[`program.${index}.job`] ? errors[`program.${index}.job`] : ""} required />
                         <Textarea id={`${pageid}-info-${index}`} radius="md" label="Informasi Tambahan" placeholder="Masukkan informasi tambahan" name="info" value={item.info} onChange={(e) => handleRowChange("program", index, e)} errormsg={errors[`program.${index}.info`] ? errors[`program.${index}.info`] : ""} rows={5} />
                       </Fieldset>
                     ))}
